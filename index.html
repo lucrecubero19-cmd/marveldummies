@@ -212,6 +212,15 @@ button,input,textarea{font-family:inherit;color:inherit}
 .roadmap-item-compact-year{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:11px; color:var(--text-faint); flex:none; font-variant-numeric:tabular-nums; }
 .roadmap-item-detail{ margin:0 0 10px; padding:12px 14px; border-radius:var(--card-radius); background:var(--surface); border:1px solid var(--divider); animation:roadmapZoomIn .22s cubic-bezier(.2,.9,.3,1) both; }
 @keyframes roadmapZoomIn{ from{ opacity:0; transform:scale(.94) translateY(-4px); } to{ opacity:1; transform:scale(1) translateY(0); } }
+.roadmap-era.is-zoomed{ opacity:1; }
+.roadmap-era.is-zoomed .roadmap-era-dot{ transform:scale(1.5); box-shadow:0 0 0 4px var(--bg), 0 0 0 6px var(--accent-soft); }
+.roadmap-poster{ text-align:center; padding:6px 0 16px; }
+.roadmap-poster-eyebrow{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin:0 0 2px; }
+.roadmap-poster-title{ font-family:var(--font-heading); font-weight:400; font-size:30px; margin:0; }
+.roadmap-item.has-marker{ margin-top:22px; }
+.roadmap-marker{ position:absolute; left:-22px; top:-18px; transform:translateX(-50%); white-space:nowrap; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:9.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; padding:2px 7px; border-radius:20px; background:var(--accent); color:var(--bg); }
+.roadmap-marker-here{ background:var(--heat); white-space:normal; max-width:150px; text-align:center; line-height:1.3; padding:4px 8px; }
+.roadmap-marker-finish{ background:var(--text); }
 .roadmap-item-meta{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:11px; color:var(--text-dim); font-variant-numeric:tabular-nums; margin-bottom:6px; }
 .roadmap-item-synopsis{ font-size:13px; line-height:1.5; opacity:.86; margin:8px 0 0; }
 .zoom-out-link{ display:inline-block; margin-top:10px; padding:0; border:0; background:none; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:11.5px; font-weight:700; color:var(--accent); cursor:pointer; }
@@ -553,7 +562,16 @@ function setSearch(v){ state.search=v; commit(); }
 function toggleFilters(){ state.filtersOpen = !state.filtersOpen; commit(); }
 function setTheorySearch(v){ state.theorySearch=v; commit(); }
 function setTheorySort(v){ state.theorySort=v; commit(); }
-function toggleEra(id){ state.expandedEra = (state.expandedEra===id ? null : id); state.roadmapFocus=null; commit(); }
+function toggleEra(id){
+  var opening = state.expandedEra !== id;
+  state.expandedEra = (state.expandedEra===id ? null : id);
+  state.roadmapFocus=null;
+  commit();
+  if(opening){
+    var el = document.getElementById('rme-'+id);
+    if(el && el.scrollIntoView) el.scrollIntoView({block:'start', behavior:'smooth'});
+  }
+}
 function toggleWatched(id){
   var was = !!state.watched[id];
   state.watched[id] = !was;
@@ -735,13 +753,18 @@ function renderTimelineHeader(s){
     filtersBlock
   );
 }
-function renderRoadmapItem(it, s){
+function renderRoadmapItem(it, s, marker){
   var watched = !!s.watched[it.id];
   var favorite = !!s.favorites[it.id];
   var rating = s.ratings[it.id] || 0;
   var focused = s.roadmapFocus === it.id;
   var dimmed = s.roadmapFocus && !focused;
   var meta = it.upcoming ? ('UPCOMING · '+esc(it.releaseDate||'TBA')) : (it.year+' · '+esc(it.runtime));
+
+  var markerTag = '';
+  if(marker === 'start') markerTag = '<div class="roadmap-marker roadmap-marker-start">START</div>';
+  else if(marker === 'finish') markerTag = '<div class="roadmap-marker roadmap-marker-finish">🏁 FINISH</div>';
+  else if(marker === 'here') markerTag = '<div class="roadmap-marker roadmap-marker-here">📍 RIGHT NOW, YOU\'RE HERE</div>';
 
   var compact =
     '<div class="roadmap-item-compact" data-act="focusRoadmapItem" data-id="'+esc(it.id)+'">'+
@@ -782,7 +805,8 @@ function renderRoadmapItem(it, s){
   }
 
   return (
-    '<div class="roadmap-item'+(focused?' is-focused':'')+(dimmed?' is-dimmed':'')+'" id="rm-'+esc(it.id)+'">'+
+    '<div class="roadmap-item'+(focused?' is-focused':'')+(dimmed?' is-dimmed':'')+(marker?' has-marker':'')+'" id="rm-'+esc(it.id)+'">'+
+      markerTag+
       '<div class="roadmap-item-dot '+(watched?'is-on':'')+(focused?' is-focused':'')+'"></div>'+
       compact+detail+
     '</div>'
@@ -801,8 +825,10 @@ function renderRoadmapEra(era, s){
         '<div class="roadmap-era-top"><h3 class="roadmap-era-name">'+esc(era.name)+'</h3><span class="roadmap-era-years">'+esc(era.years)+' · '+era.progressLabel+'</span></div>'+
         (era.blurb&&!s.roadmapFocus?'<p class="roadmap-era-blurb">'+esc(era.blurb)+'</p>':'')+
       '</div>';
-  var items = era.expanded ? era.items.map(function(it){ return renderRoadmapItem(it, s); }).join('') : '';
-  return '<div class="roadmap-era'+(dimmed?' is-dimmed':'')+'">'+head+items+'</div>';
+  var sectionDimmed = s.expandedEra && era.collapsible && s.expandedEra !== era.id;
+  var sectionZoomed = s.expandedEra && era.collapsible && s.expandedEra === era.id;
+  var items = era.expanded ? era.items.map(function(it){ return renderRoadmapItem(it, s, s.roadmapMarkers ? s.roadmapMarkers[it.id] : null); }).join('') : '';
+  return '<div class="roadmap-era'+(dimmed||sectionDimmed?' is-dimmed':'')+(sectionZoomed?' is-zoomed':'')+'" id="rme-'+esc(era.id)+'">'+head+items+'</div>';
 }
 function renderTimeline(s){
   var eras = filteredEras(s);
@@ -810,8 +836,19 @@ function renderTimeline(s){
     return '<div class="tab-panel"><p class="empty-note">No titles match &ldquo;'+esc(s.search)+'&rdquo;.</p></div>';
   }
   if(s.layout === 'roadmap'){
-    var zoomBar = s.roadmapFocus ? '<button type="button" class="zoom-out-bar" data-act="focusRoadmapItem" data-id="'+esc(s.roadmapFocus)+'">⤢ Zoom out to full timeline</button>' : '';
-    return '<div class="tab-panel">'+zoomBar+'<div class="roadmap'+(s.roadmapFocus?' has-focus':'')+'"><div class="roadmap-line"></div>'+eras.map(function(era){ return renderRoadmapEra(era, s); }).join('')+'</div></div>';
+    var flatIds = [];
+    eras.forEach(function(era){ era.items.forEach(function(it){ flatIds.push(it.id); }); });
+    var markers = {};
+    if(flatIds.length){
+      markers[flatIds[0]] = 'start';
+      markers[flatIds[flatIds.length-1]] = 'finish';
+      var nextUnwatched = flatIds.find(function(id){ return !s.watched[id]; });
+      if(nextUnwatched && !markers[nextUnwatched]) markers[nextUnwatched] = 'here';
+    }
+    s.roadmapMarkers = markers;
+    var zoomBar = s.roadmapFocus ? '<button type="button" class="zoom-out-bar" data-act="focusRoadmapItem" data-id="'+esc(s.roadmapFocus)+'">⤢ Zoom out to full timeline</button>' :
+      (s.expandedEra ? '<button type="button" class="zoom-out-bar" data-act="toggleEra" data-id="'+esc(s.expandedEra)+'">⤢ Zoom out to full timeline</button>' : '');
+    return '<div class="tab-panel"><div class="roadmap-poster"><h6 class="roadmap-poster-eyebrow">Enjoy the journey</h6><h2 class="roadmap-poster-title">You will get there</h2></div>'+zoomBar+'<div class="roadmap'+(s.roadmapFocus?' has-focus':'')+'"><div class="roadmap-line"></div>'+eras.map(function(era){ return renderRoadmapEra(era, s); }).join('')+'</div></div>';
   }
   return '<div class="tab-panel">'+eras.map(renderEra).join('')+'</div>';
 }
