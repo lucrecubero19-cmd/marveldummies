@@ -139,18 +139,18 @@
 }
 /* Hulk — green and purple */
 :root[data-app-theme="hulk"]{
-  --bg:#1e1330; --bg-deep:#120b20; --surface:#2b1c46; --surface-2:#211537;
-  --text:#f3eefc; --text-dim:rgba(243,238,252,.68); --text-faint:rgba(243,238,252,.44);
-  --accent:#7ed957; --accent-ink:#0f1f0d; --accent-soft:rgba(126,217,87,.2);
-  --heat:#a855f7;
-  --divider:rgba(196,150,247,.22);
+  --bg:#16241a; --bg-deep:#0c1710; --surface:#20321f; --surface-2:#182818;
+  --text:#eef7ec; --text-dim:rgba(238,247,236,.66); --text-faint:rgba(238,247,236,.42);
+  --accent:#a855f7; --accent-ink:#ffffff; --accent-soft:rgba(168,85,247,.22);
+  --heat:#6bbf59;
+  --divider:rgba(238,247,236,.16);
   --danger-text:#ffb9b9; --danger-border:rgba(255,185,185,.45);
   --chip-radius:999px; --card-radius:3px;
   --halftone-a:.14;
   --shadow:0 20px 50px rgba(0,0,0,.5);
   --tag-movie-bg:var(--accent-soft); --tag-movie-fg:var(--accent);
-  --tag-series-bg:rgba(168,85,247,.28); --tag-series-fg:#d4b3fb;
-  --tag-special-bg:rgba(168,85,247,.14); --tag-special-fg:#d4b3fb;
+  --tag-series-bg:rgba(107,191,89,.22); --tag-series-fg:#a3e08f;
+  --tag-special-bg:rgba(238,247,236,.10); --tag-special-fg:var(--text-dim);
   --tag-short-fg:var(--accent);
 }
 
@@ -749,7 +749,7 @@ function defaultState(){
 function loadState(){
   try{
     var raw = localStorage.getItem(STORAGE_KEY);
-    if(raw){ var merged = Object.assign(defaultState(), JSON.parse(raw)); merged.toastMsg = null; return merged; }
+    if(raw){ var merged = Object.assign(defaultState(), JSON.parse(raw)); merged.toastMsg = null; merged.fanNoticeDismissed = false; return merged; }
   }catch(e){}
   return defaultState();
 }
@@ -1376,7 +1376,8 @@ function template(s){
     ? '<button type="button" class="account-pill" data-act="setTab" data-id="settings" title="'+esc(displayNameFor())+'"><span class="account-avatar">'+esc((displayNameFor()||'?').charAt(0).toUpperCase())+'</span></button>'
     : '<button type="button" class="account-pill account-pill-out" data-act="signIn">Sign in</button>';
   return (
-    '<header class="app-header'+(s.scrolled?' is-collapsed':'')+'"><div class="tab-panel">'+accountPill+header+'</div></header>'+
+    accountPill+
+    '<header class="app-header'+(s.scrolled?' is-collapsed':'')+'"><div class="tab-panel">'+header+'</div></header>'+
     '<main class="app-content">'+content+'</main>'+
     renderTabbar(s)+
     cookieBanner+
