@@ -17,6 +17,7 @@
   }catch(e){ document.documentElement.setAttribute('data-app-theme','comic'); }
 })();
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 @font-face{
   font-family:'Anton';
@@ -336,6 +337,85 @@ __DATA_JS__
 function fmtMin(m){ return m>=60 ? Math.round(m/60)+' hr' : m+' min'; }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 
+/* ---------- accounts (Supabase) ---------- */
+var SUPABASE_URL = 'https://yumauklwjtwyhyrynjgr.supabase.co';
+var SUPABASE_ANON_KEY = 'sb_publishable_KfBLrn6YHgBgx2CkC-n0hw_-nq8mWiQ';
+var sb = (window.supabase && SUPABASE_URL) ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+function signInWithGoogle(){
+  if(!sb) return;
+  sb.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: window.location.href } });
+}
+function signOut(){
+  if(!sb) return;
+  sb.auth.signOut();
+}
+function requireAuth(){
+  if(state.user) return true;
+  state.authPrompt = true;
+  commit();
+  return false;
+}
+function dismissAuthPrompt(){ state.authPrompt = false; commit(); }
+
+async function loadRemoteData(){
+  if(!sb) return;
+  try{
+    var res = await sb.from('comments').select('*').order('created_at', {ascending:true});
+    if(res.data){
+      var byTheory = {};
+      res.data.forEach(function(c){ (byTheory[c.theory_id] = byTheory[c.theory_id] || []).push(c); });
+      state.remoteComments = byTheory;
+    }
+  }catch(e){}
+  try{
+    var vres = await sb.from('votes').select('*');
+    if(vres.data){
+      var up={}, down={}, mine={};
+      vres.data.forEach(function(v){
+        if(v.vote_type==='agree') up[v.theory_id]=(up[v.theory_id]||0)+1;
+        else down[v.theory_id]=(down[v.theory_id]||0)+1;
+        if(state.user && v.user_id===state.user.id) mine[v.theory_id]=v.vote_type;
+      });
+      state.upvotes=up; state.downvotes=down;
+      if(state.user) state.myVote=mine;
+    }
+  }catch(e){}
+  try{
+    var tres = await sb.from('user_theories').select('*').order('created_at', {ascending:false});
+    if(tres.data){
+      state.userTheories = tres.data.map(function(t){ return {id:t.id, title:t.title, body:t.body, heat:1, mine: state.user && t.user_id===state.user.id, authorName:t.user_name}; });
+    }
+  }catch(e){}
+  if(state.user){
+    try{
+      var sres = await sb.from('item_stats').select('*').eq('user_id', state.user.id);
+      if(sres.data){
+        var favs={}, favOrder=[], ratings={};
+        sres.data.forEach(function(r){
+          if(r.favorite){ favs[r.item_id]=true; favOrder.push(r.item_id); }
+          if(r.rating) ratings[r.item_id]=r.rating;
+        });
+        state.favorites=favs; state.favoriteOrder=favOrder; state.ratings=ratings;
+      }
+    }catch(e){}
+  }
+  commit();
+}
+
+function initAuth(){
+  if(!sb) return;
+  sb.auth.getSession().then(function(res){
+    state.user = res.data.session ? res.data.session.user : null;
+    loadRemoteData();
+  });
+  sb.auth.onAuthStateChange(function(_event, session){
+    state.user = session ? session.user : null;
+    state.authPrompt = false;
+    loadRemoteData();
+  });
+}
+
 var STORAGE_KEY = 'mcuRewatch.v1';
 function defaultState(){
   var prefersDark = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches;
@@ -347,7 +427,8 @@ function defaultState(){
     theoryOpen:{}, upvotes:{}, downvotes:{}, myVote:{}, comments:{}, commentDrafts:{},
     userTheories:[], showNewTheory:false, newTheoryTitle:'', newTheoryBody:'',
     theorySearch:'', theorySort:'new', scrolled:false,
-    cookieNoticeDismissed:false, showLegal:false
+    cookieNoticeDismissed:false, showLegal:false,
+    user:null, authPrompt:false, remoteComments:{}
   };
 }
 function loadState(){
@@ -386,13 +467,27 @@ function toggleWatched(id){
   if(!was) state.watchedOrder.unshift(id);
   commit();
 }
-function setRating(id, n){ state.ratings[id] = (state.ratings[id]===n ? 0 : n); commit(); }
+function saveItemStat(id){
+  if(!sb || !state.user) return;
+  sb.from('item_stats').upsert({
+    user_id: state.user.id, item_id: id,
+    favorite: !!state.favorites[id], rating: state.ratings[id]||null
+  }, {onConflict:'user_id,item_id'}).then(function(){});
+}
+function setRating(id, n){
+  if(!requireAuth()) return;
+  state.ratings[id] = (state.ratings[id]===n ? 0 : n);
+  commit();
+  saveItemStat(id);
+}
 function toggleFavorite(id){
+  if(!requireAuth()) return;
   var was = !!state.favorites[id];
   state.favorites[id] = !was;
   state.favoriteOrder = state.favoriteOrder.filter(function(x){ return x!==id; });
   if(!was) state.favoriteOrder.unshift(id);
   commit();
+  saveItemStat(id);
 }
 function toggleNotif(){ state.notif = !state.notif; commit(); }
 function dismissCookieNotice(){ state.cookieNoticeDismissed = true; commit(); }
@@ -413,6 +508,7 @@ function resetProgress(){ state.watched={}; state.ratings={}; state.watchedOrder
 
 function toggleTheoryOpen(id){ state.theoryOpen[id] = !state.theoryOpen[id]; commit(); }
 function vote(id, type){
+  if(!requireAuth()) return;
   var current = state.myVote[id];
   var next = type;
   function dec(obj){ obj[id] = Math.max(0, (obj[id]||0)-1); }
@@ -424,26 +520,49 @@ function vote(id, type){
   }
   state.myVote[id] = next;
   commit();
+  if(sb){
+    if(next===null) sb.from('votes').delete().eq('user_id', state.user.id).eq('theory_id', id).then(function(){});
+    else sb.from('votes').upsert({user_id:state.user.id, theory_id:id, vote_type:next}, {onConflict:'user_id,theory_id'}).then(function(){});
+  }
 }
 function setCommentDraft(id, v){ state.commentDrafts[id]=v; commit(); }
 function addComment(id){
+  if(!requireAuth()) return;
   var text = (state.commentDrafts[id]||'').trim();
   if(!text) return;
-  state.comments[id] = (state.comments[id]||[]).concat([text]);
+  var name = (state.user.user_metadata && (state.user.user_metadata.full_name || state.user.user_metadata.name)) || state.user.email || 'Fan';
+  state.remoteComments[id] = (state.remoteComments[id]||[]).concat([{theory_id:id, body:text, user_name:name, user_id:state.user.id}]);
   state.commentDrafts[id] = '';
   commit();
+  if(sb) sb.from('comments').insert({theory_id:id, body:text, user_name:name, user_id:state.user.id}).then(function(){ loadRemoteData(); });
 }
-function deleteComment(id, idx){ state.comments[id] = (state.comments[id]||[]).filter(function(_,i){ return i!==idx; }); commit(); }
-function deleteTheory(id){ state.userTheories = state.userTheories.filter(function(t){ return t.id!==id; }); commit(); }
-function toggleNewTheoryForm(){ state.showNewTheory = !state.showNewTheory; commit(); }
+function deleteComment(id, idx){
+  var list = state.remoteComments[id]||[];
+  var c = list[idx];
+  state.remoteComments[id] = list.filter(function(_,i){ return i!==idx; });
+  commit();
+  if(sb && c && c.id) sb.from('comments').delete().eq('id', c.id).then(function(){});
+}
+function deleteTheory(id){
+  state.userTheories = state.userTheories.filter(function(t){ return t.id!==id; });
+  commit();
+  if(sb) sb.from('user_theories').delete().eq('id', id).then(function(){});
+}
+function toggleNewTheoryForm(){
+  if(!requireAuth()) return;
+  state.showNewTheory = !state.showNewTheory;
+  commit();
+}
 function setNewTheoryTitle(v){ state.newTheoryTitle=v; commit(); }
 function setNewTheoryBody(v){ state.newTheoryBody=v; commit(); }
 function submitTheory(){
+  if(!requireAuth()) return;
   var title = state.newTheoryTitle.trim(), body = state.newTheoryBody.trim();
   if(!title || !body) return;
-  state.userTheories = [{id:'user-'+Date.now(), title:title, body:body, heat:1, mine:true}].concat(state.userTheories);
+  var name = (state.user.user_metadata && (state.user.user_metadata.full_name || state.user.user_metadata.name)) || state.user.email || 'Fan';
   state.newTheoryTitle=''; state.newTheoryBody=''; state.showNewTheory=false;
   commit();
+  if(sb) sb.from('user_theories').insert({title:title, body:body, user_name:name, user_id:state.user.id}).then(function(){ loadRemoteData(); });
 }
 
 /* ---------- icons ---------- */
@@ -767,10 +886,11 @@ function renderTheories(s){
       : '';
     var openBlock = '';
     if(open){
-      var comments = (s.comments[t.id]||[]);
+      var comments = (s.remoteComments[t.id]||[]);
       var commentsHtml = comments.map(function(c, idx){
-        return '<div class="comment-row"><span>'+esc(c)+'</span><span class="delete-link" data-act="deleteComment" data-id="'+esc(t.id)+'" data-idx="'+idx+'">✕</span></div>';
-      }).join('');
+        var mine = s.user && c.user_id === s.user.id;
+        return '<div class="comment-row"><span><strong>'+esc(c.user_name||'Fan')+':</strong> '+esc(c.body)+'</span>'+(mine?'<span class="delete-link" data-act="deleteComment" data-id="'+esc(t.id)+'" data-idx="'+idx+'">✕</span>':'')+'</div>';
+      }).join('') || '<p class="empty-note" style="padding:8px 0">No comments yet — be the first.</p>';
       var draft = s.commentDrafts[t.id] || '';
       var agree = s.myVote[t.id] === 'agree', disagree = s.myVote[t.id] === 'disagree';
       var sourceLine = t.source ? '<p class="theory-source">via '+esc(t.source)+'</p>' : '';
@@ -817,9 +937,15 @@ function renderSettingsHeader(){
   return '<h1 class="title">Settings</h1>';
 }
 function renderSettings(s){
+  var accountBlock = s.user
+    ? '<div class="pref-row"><span class="pref-label">Signed in as '+esc((s.user.user_metadata&&(s.user.user_metadata.full_name||s.user.user_metadata.name))||s.user.email)+'</span>'+
+        '<button type="button" class="delete-link" data-act="signOut">Sign out</button></div>'
+    : '<div style="padding:12px 0;border-top:1px solid var(--divider)"><button type="button" class="btn btn-primary" data-act="signIn">Continue with Google</button></div>';
   return (
     '<div class="tab-panel">'+
-      '<h6 class="section-label" style="margin-top:8px">Preferences</h6>'+
+      '<h6 class="section-label" style="margin-top:8px">Account</h6>'+
+      accountBlock+
+      '<h6 class="section-label">Preferences</h6>'+
       '<div class="pref-row"><span class="pref-label">Notifications for new releases</span>'+
         '<div class="switch '+(s.notif?'is-on':'')+'" data-act="toggleNotif"><div class="switch-knob"></div></div></div>'+
       '<div class="pref-row"><span class="pref-label">Timeline layout</span>'+
@@ -878,7 +1004,20 @@ function template(s){
     '<main class="app-content">'+content+'</main>'+
     renderTabbar(s)+
     cookieBanner+
-    (s.showLegal ? renderLegalModal() : '')
+    (s.showLegal ? renderLegalModal() : '')+
+    (s.authPrompt ? renderAuthModal() : '')
+  );
+}
+function renderAuthModal(){
+  return (
+    '<div class="legal-modal" data-act="dismissAuthPrompt">'+
+      '<div class="legal-card" data-act="stop">'+
+        '<h3>Sign in to join in</h3>'+
+        '<p>Voting, rating, favoriting and posting theories or comments need an account, so everyone sees the same shared list instead of a copy stuck on one phone.</p>'+
+        '<button type="button" class="btn btn-primary" data-act="signIn" style="margin-bottom:10px">Continue with Google</button>'+
+        '<button type="button" class="zoom-out-link" data-act="dismissAuthPrompt">Not now</button>'+
+      '</div>'+
+    '</div>'
   );
 }
 function renderLegalModal(){
@@ -928,6 +1067,9 @@ root.addEventListener('click', function(e){
     case 'dismissCookieNotice': dismissCookieNotice(); break;
     case 'showLegal': showLegal(); break;
     case 'closeLegal': closeLegal(); break;
+    case 'signIn': signInWithGoogle(); break;
+    case 'signOut': signOut(); break;
+    case 'dismissAuthPrompt': dismissAuthPrompt(); break;
     case 'setTab': setTab(id); break;
     case 'toggleFilters': toggleFilters(); break;
     case 'focusRoadmapItem': focusRoadmapItem(id); break;
@@ -976,6 +1118,7 @@ root.addEventListener('scroll', function(e){
 
 render();
 showSplash();
+initAuth();
 
 /* ---------- opening transition ---------- */
 function showSplash(){
