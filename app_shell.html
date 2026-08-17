@@ -136,6 +136,14 @@ button,input,textarea{font-family:inherit;color:inherit}
 
 /* ---------- content ---------- */
 .app-content{ flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:2px 20px 28px; scrollbar-width:none; }
+.cookie-banner{ position:absolute; left:10px; right:10px; bottom:calc(env(safe-area-inset-bottom) + 78px); z-index:5; display:flex; align-items:center; gap:10px; padding:11px 12px; border-radius:var(--card-radius); background:var(--surface); border:1px solid var(--divider); box-shadow:0 8px 24px rgba(0,0,0,.28); animation:fadeSlide .25s ease both; }
+.cookie-banner p{ margin:0; font-size:12px; line-height:1.4; color:var(--text-dim); flex:1; }
+.cookie-banner a{ color:var(--accent); }
+.cookie-ok{ flex:none; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-weight:700; font-size:12px; padding:8px 12px; border-radius:var(--card-radius); border:0; background:var(--accent); color:var(--bg); cursor:pointer; }
+.legal-modal{ position:absolute; inset:0; z-index:6; background:rgba(0,0,0,.55); display:flex; align-items:flex-end; }
+.legal-card{ width:100%; max-height:80%; overflow-y:auto; padding:20px 20px calc(env(safe-area-inset-bottom) + 20px); border-radius:18px 18px 0 0; background:var(--surface); border:1px solid var(--divider); border-bottom:0; }
+.legal-card h3{ font-family:var(--font-heading); font-weight:400; font-size:20px; margin:0 0 10px; }
+.legal-card p{ font-size:13px; line-height:1.55; color:var(--text-dim); margin:0 0 12px; }
 .app-content::-webkit-scrollbar{ display:none }
 .tab-panel{ animation:fadeSlide .22s ease both; }
 @keyframes fadeSlide{ from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
@@ -217,10 +225,11 @@ button,input,textarea{font-family:inherit;color:inherit}
 .roadmap-poster{ text-align:center; padding:6px 0 16px; }
 .roadmap-poster-eyebrow{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin:0 0 2px; }
 .roadmap-poster-title{ font-family:var(--font-heading); font-weight:400; font-size:30px; margin:0; }
-.roadmap-item.has-marker{ margin-top:22px; }
-.roadmap-marker{ position:absolute; left:-22px; top:-18px; transform:translateX(-50%); white-space:nowrap; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:9.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; padding:2px 7px; border-radius:20px; background:var(--accent); color:var(--bg); }
-.roadmap-marker-here{ background:var(--heat); white-space:normal; max-width:150px; text-align:center; line-height:1.3; padding:4px 8px; }
+.roadmap-item.has-marker{ margin-top:14px; }
+.roadmap-marker{ display:inline-block; max-width:100%; box-sizing:border-box; margin:0 0 5px; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:9.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; padding:3px 9px; border-radius:20px; background:var(--accent); color:var(--bg); animation:roadmapMarkerIn .3s cubic-bezier(.2,.9,.3,1) both; opacity:1 !important; }
+.roadmap-marker-here{ background:var(--heat); }
 .roadmap-marker-finish{ background:var(--text); }
+@keyframes roadmapMarkerIn{ from{ opacity:0; transform:translateY(-4px) scale(.9); } to{ opacity:1; transform:translateY(0) scale(1); } }
 .roadmap-item-meta{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:11px; color:var(--text-dim); font-variant-numeric:tabular-nums; margin-bottom:6px; }
 .roadmap-item-synopsis{ font-size:13px; line-height:1.5; opacity:.86; margin:8px 0 0; }
 .zoom-out-link{ display:inline-block; margin-top:10px; padding:0; border:0; background:none; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:11.5px; font-weight:700; color:var(--accent); cursor:pointer; }
@@ -337,7 +346,8 @@ function defaultState(){
     notif:true, theme: prefersDark ? 'comic' : 'broadsheet',
     theoryOpen:{}, upvotes:{}, downvotes:{}, myVote:{}, comments:{}, commentDrafts:{},
     userTheories:[], showNewTheory:false, newTheoryTitle:'', newTheoryBody:'',
-    theorySearch:'', theorySort:'new', scrolled:false
+    theorySearch:'', theorySort:'new', scrolled:false,
+    cookieNoticeDismissed:false, showLegal:false
   };
 }
 function loadState(){
@@ -366,7 +376,7 @@ function toggleEra(id){
   commit();
   if(opening){
     var el = document.getElementById('rme-'+id);
-    if(el && el.scrollIntoView) el.scrollIntoView({block:'start', behavior:'smooth'});
+    if(el && el.scrollIntoView) el.scrollIntoView({block:'nearest', behavior:'smooth'});
   }
 }
 function toggleWatched(id){
@@ -385,6 +395,9 @@ function toggleFavorite(id){
   commit();
 }
 function toggleNotif(){ state.notif = !state.notif; commit(); }
+function dismissCookieNotice(){ state.cookieNoticeDismissed = true; commit(); }
+function showLegal(){ state.showLegal = true; commit(); }
+function closeLegal(){ state.showLegal = false; commit(); }
 function setLayout(v){ state.layout = v; state.roadmapFocus = null; commit(); }
 function focusRoadmapItem(id){
   var was = state.roadmapFocus === id;
@@ -392,7 +405,7 @@ function focusRoadmapItem(id){
   commit();
   if(!was){
     var el = document.getElementById('rm-'+id);
-    if(el && el.scrollIntoView) el.scrollIntoView({block:'center', behavior:'smooth'});
+    if(el && el.scrollIntoView) el.scrollIntoView({block:'nearest', behavior:'smooth'});
   }
 }
 function setTheme(t){ state.theme = t; document.documentElement.setAttribute('data-app-theme', t); commit(); }
@@ -561,7 +574,7 @@ function renderRoadmapItem(it, s, marker){
   var markerTag = '';
   if(marker === 'start') markerTag = '<div class="roadmap-marker roadmap-marker-start">START</div>';
   else if(marker === 'finish') markerTag = '<div class="roadmap-marker roadmap-marker-finish">🏁 FINISH</div>';
-  else if(marker === 'here') markerTag = '<div class="roadmap-marker roadmap-marker-here">📍 RIGHT NOW, YOU\'RE HERE</div>';
+  else if(marker === 'here') markerTag = '<div class="roadmap-marker roadmap-marker-here">📍 You are here</div>';
 
   var compact =
     '<div class="roadmap-item-compact" data-act="focusRoadmapItem" data-id="'+esc(it.id)+'">'+
@@ -597,14 +610,14 @@ function renderRoadmapItem(it, s, marker){
         scoresBlock+
         '<p class="roadmap-item-synopsis">'+esc(it.synopsis)+'</p>'+
         stars+
-        '<button type="button" class="zoom-out-link" data-act="focusRoadmapItem" data-id="'+esc(it.id)+'">▲ Collapse</button>'+
+        '<button type="button" class="zoom-out-link" data-act="focusRoadmapItem" data-id="'+esc(it.id)+'">▲ Close details</button>'+
       '</div>';
   }
 
   return (
     '<div class="roadmap-item'+(focused?' is-focused':'')+(dimmed?' is-dimmed':'')+(marker?' has-marker':'')+'" id="rm-'+esc(it.id)+'">'+
-      markerTag+
       '<div class="roadmap-item-dot '+(watched?'is-on':'')+(focused?' is-focused':'')+'"></div>'+
+      markerTag+
       compact+detail+
     '</div>'
   );
@@ -637,15 +650,17 @@ function renderTimeline(s){
     eras.forEach(function(era){ era.items.forEach(function(it){ flatIds.push(it.id); }); });
     var markers = {};
     if(flatIds.length){
-      markers[flatIds[0]] = 'start';
-      markers[flatIds[flatIds.length-1]] = 'finish';
+      if(s.viewMode === 'doomsday'){
+        markers[flatIds[0]] = 'start';
+        markers[flatIds[flatIds.length-1]] = 'finish';
+      }
       var nextUnwatched = flatIds.find(function(id){ return !s.watched[id]; });
       if(nextUnwatched && !markers[nextUnwatched]) markers[nextUnwatched] = 'here';
     }
     s.roadmapMarkers = markers;
     var zoomBar = s.roadmapFocus ? '<button type="button" class="zoom-out-bar" data-act="focusRoadmapItem" data-id="'+esc(s.roadmapFocus)+'">⤢ Zoom out to full timeline</button>' :
       (s.expandedEra ? '<button type="button" class="zoom-out-bar" data-act="toggleEra" data-id="'+esc(s.expandedEra)+'">⤢ Zoom out to full timeline</button>' : '');
-    return '<div class="tab-panel"><div class="roadmap-poster"><h6 class="roadmap-poster-eyebrow">Enjoy the journey</h6><h2 class="roadmap-poster-title">You will get there</h2></div>'+zoomBar+'<div class="roadmap'+(s.roadmapFocus?' has-focus':'')+'"><div class="roadmap-line"></div>'+eras.map(function(era){ return renderRoadmapEra(era, s); }).join('')+'</div></div>';
+    return '<div class="tab-panel"><div class="roadmap-poster"><h6 class="roadmap-poster-eyebrow">Avengers, Assemble</h6><h2 class="roadmap-poster-title">You will get there</h2></div>'+zoomBar+'<div class="roadmap'+(s.roadmapFocus?' has-focus':'')+'"><div class="roadmap-line"></div>'+eras.map(function(era){ return renderRoadmapEra(era, s); }).join('')+'</div></div>';
   }
   return '<div class="tab-panel">'+eras.map(renderEra).join('')+'</div>';
 }
@@ -830,6 +845,7 @@ function renderSettings(s){
       '</div>'+
       '<h6 class="section-label">About</h6>'+
       '<p class="about-text">Marvel for Dummies is a companion for rewatching the MCU in story order — every film, series, special and short, grouped by era. Your progress, ratings and theories are saved on this device.</p>'+
+      '<button type="button" class="filters-toggle" style="margin:2px 0 12px" data-act="showLegal">Privacy &amp; Legal ▸</button>'+
     '</div>'
   );
 }
@@ -852,10 +868,30 @@ function template(s){
   else if(s.tab==='home'){ header = renderHomeHeader(); content = renderHome(s); }
   else if(s.tab==='theories'){ header = renderTheoriesHeader(s); content = renderTheories(s); }
   else { header = renderSettingsHeader(); content = renderSettings(s); }
+  var cookieBanner = s.cookieNoticeDismissed ? '' :
+    '<div class="cookie-banner">'+
+      '<p>This app saves your watch progress, ratings and favorites locally on your device (no tracking cookies, nothing sent to a server). See <a href="#" data-act="showLegal">Privacy &amp; Legal</a>.</p>'+
+      '<button type="button" class="cookie-ok" data-act="dismissCookieNotice">Got it</button>'+
+    '</div>';
   return (
     '<header class="app-header'+(s.scrolled?' is-collapsed':'')+'"><div class="tab-panel">'+header+'</div></header>'+
     '<main class="app-content">'+content+'</main>'+
-    renderTabbar(s)
+    renderTabbar(s)+
+    cookieBanner+
+    (s.showLegal ? renderLegalModal() : '')
+  );
+}
+function renderLegalModal(){
+  return (
+    '<div class="legal-modal" data-act="closeLegal">'+
+      '<div class="legal-card" data-act="stop">'+
+        '<h3>Privacy &amp; Legal</h3>'+
+        '<p><strong>What this app stores:</strong> your watched titles, ratings, favorites and settings are saved only in your browser\'s local storage on this device. Nothing is uploaded, no account is required, and no analytics or tracking cookies are used.</p>'+
+        '<p><strong>Clearing your data:</strong> use Settings → Reset all progress, or clear this site\'s data in your browser to remove everything.</p>'+
+        '<p><strong>Third-party content:</strong> synopses and scores are editorial summaries for personal reference; all titles, names and imagery referenced belong to their respective rights holders. This is an unofficial fan companion, not affiliated with Marvel or Disney.</p>'+
+        '<button type="button" class="zoom-out-link" data-act="closeLegal">Close</button>'+
+      '</div>'+
+    '</div>'
   );
 }
 
@@ -885,9 +921,13 @@ function render(){
 root.addEventListener('click', function(e){
   var el = e.target.closest('[data-act]');
   if(!el) return;
+  if(el.tagName === 'A') e.preventDefault();
   var act = el.dataset.act, id = el.dataset.id;
   switch(act){
     case 'stop': break;
+    case 'dismissCookieNotice': dismissCookieNotice(); break;
+    case 'showLegal': showLegal(); break;
+    case 'closeLegal': closeLegal(); break;
     case 'setTab': setTab(id); break;
     case 'toggleFilters': toggleFilters(); break;
     case 'focusRoadmapItem': focusRoadmapItem(id); break;
