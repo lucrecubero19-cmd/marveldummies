@@ -454,7 +454,7 @@ var STORAGE_KEY = 'mcuRewatch.v1';
 function defaultState(){
   var prefersDark = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches;
   return {
-    tab:'timeline', section:'connected', viewMode:'chrono', search:'', filtersOpen:false,
+    tab:'timeline', section:'connected', viewMode:'chrono', search:'', filtersOpen:true,
     expandedEra:'origins', watched:{}, ratings:{}, watchedOrder:[],
     favorites:{}, favoriteOrder:[], layout:'list', roadmapFocus:null,
     notif:true, theme: prefersDark ? 'comic' : 'broadsheet',
@@ -726,7 +726,7 @@ function renderTimelineHeader(s){
     ) : '';
     filtersBlock =
       '<input class="search" type="text" placeholder="Search titles…" value="'+esc(s.search)+'" data-bind="search" data-focus-id="search" style="margin-top:8px;margin-bottom:4px">'+
-      '<p class="caption">In-universe chronological order, grouped by era.</p>'+
+      '<p class="caption">Choose your own path — story order, release order, or straight to Doomsday.</p>'+
       '<div class="seg" style="margin-top:8px">'+
         '<label><input type="radio" name="viewmode" data-value="chrono" '+(s.viewMode==='chrono'?'checked':'')+'>Story Order</label>'+
         '<label><input type="radio" name="viewmode" data-value="release" '+(s.viewMode==='release'?'checked':'')+'>Release Order</label>'+
