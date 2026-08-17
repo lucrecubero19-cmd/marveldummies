@@ -287,7 +287,7 @@ button,input,textarea{font-family:inherit;color:inherit}
 .theory-title-row{ flex:1; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
 .theory-title{ font-family:var(--font-heading); font-weight:400; font-size:15.5px; line-height:1.3; margin:0; text-wrap:balance; }
 .tag-mine{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:9.5px; font-weight:700; letter-spacing:.04em; padding:2.5px 8px; border-radius:var(--chip-radius); box-shadow:inset 0 0 0 1px var(--accent); color:var(--accent); }
-.delete-link{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:11.5px; color:var(--text-dim); cursor:pointer; }
+.delete-link{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:11.5px; color:var(--text-dim); cursor:pointer; background:none; border:0; padding:0; }
 .theory-chevron{ font-size:12px; color:var(--accent); flex:none; }
 .heat-row{ display:flex; align-items:center; gap:6px; margin-top:8px; }
 .heat-label{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:9.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--text-faint); }
@@ -617,6 +617,10 @@ async function loadRemoteData(){
   }catch(e){}
   if(state.user){
     try{
+      var pres = await sb.from('profiles').select('*').eq('user_id', state.user.id).maybeSingle();
+      if(pres.data && pres.data.display_name){ state.displayName = pres.data.display_name; }
+    }catch(e){}
+    try{
       var sres = await sb.from('item_stats').select('*').eq('user_id', state.user.id);
       if(sres.data){
         var favs={}, favOrder=[], ratings={};
@@ -659,7 +663,8 @@ function defaultState(){
     userTheories:[], showNewTheory:false, newTheoryTitle:'', newTheoryBody:'',
     theorySearch:'', theorySort:'new', scrolled:false,
     cookieNoticeDismissed:false, showLegal:false,
-    user:null, authPrompt:false, remoteComments:{}, showStoryboard:false
+    user:null, authPrompt:false, remoteComments:{}, showStoryboard:false,
+    displayName:'', displayNameDraft:''
   };
 }
 function loadState(){
@@ -697,6 +702,20 @@ function toggleWatched(id){
   state.watchedOrder = state.watchedOrder.filter(function(x){ return x!==id; });
   if(!was) state.watchedOrder.unshift(id);
   commit();
+}
+function displayNameFor(){
+  if(!state.user) return 'Fan';
+  if(state.displayName) return state.displayName;
+  return (state.user.user_metadata && (state.user.user_metadata.full_name || state.user.user_metadata.name)) || state.user.email || 'Fan';
+}
+function setDisplayNameDraft(v){ state.displayNameDraft=v; commit(); }
+function saveDisplayName(){
+  var name = state.displayNameDraft.trim();
+  if(!name) return;
+  state.displayName = name;
+  state.displayNameDraft = '';
+  commit();
+  if(sb && state.user) sb.from('profiles').upsert({user_id:state.user.id, display_name:name}, {onConflict:'user_id'}).then(function(){});
 }
 function saveItemStat(id){
   if(!sb || !state.user) return;
@@ -762,7 +781,7 @@ function addComment(id){
   if(!requireAuth()) return;
   var text = (state.commentDrafts[id]||'').trim();
   if(!text) return;
-  var name = (state.user.user_metadata && (state.user.user_metadata.full_name || state.user.user_metadata.name)) || state.user.email || 'Fan';
+  var name = displayNameFor();
   state.remoteComments[id] = (state.remoteComments[id]||[]).concat([{theory_id:id, body:text, user_name:name, user_id:state.user.id}]);
   state.commentDrafts[id] = '';
   commit();
@@ -791,7 +810,7 @@ function submitTheory(){
   if(!requireAuth()) return;
   var title = state.newTheoryTitle.trim(), body = state.newTheoryBody.trim();
   if(!title || !body) return;
-  var name = (state.user.user_metadata && (state.user.user_metadata.full_name || state.user.user_metadata.name)) || state.user.email || 'Fan';
+  var name = displayNameFor();
   state.newTheoryTitle=''; state.newTheoryBody=''; state.showNewTheory=false;
   commit();
   if(sb) sb.from('user_theories').insert({title:title, body:body, user_name:name, user_id:state.user.id}).then(function(){ loadRemoteData(); });
@@ -1196,8 +1215,15 @@ function renderSettingsHeader(){
 }
 function renderSettings(s){
   var accountBlock = s.user
-    ? '<div class="pref-row"><span class="pref-label">Signed in as '+esc((s.user.user_metadata&&(s.user.user_metadata.full_name||s.user.user_metadata.name))||s.user.email)+'</span>'+
-        '<button type="button" class="delete-link" data-act="signOut">Sign out</button></div>'
+    ? '<div class="pref-row"><span class="pref-label">Signed in as '+esc(displayNameFor())+'</span>'+
+        '<button type="button" class="delete-link" data-act="signOut">Sign out</button></div>'+
+      '<div style="padding:12px 0;border-top:1px solid var(--divider)">'+
+        '<span class="pref-label" style="display:block;margin-bottom:8px">Display name (shown on your comments &amp; theories)</span>'+
+        '<div style="display:flex;gap:8px">'+
+          '<input class="field-input" type="text" placeholder="'+esc(displayNameFor())+'" value="'+esc(s.displayNameDraft)+'" data-bind="displayName" data-focus-id="display-name">'+
+          '<button type="button" class="btn" style="width:auto" data-act="saveDisplayName">Save</button>'+
+        '</div>'+
+      '</div>'
     : '<div style="padding:12px 0;border-top:1px solid var(--divider)"><button type="button" class="btn btn-primary" data-act="signIn">Continue with Google</button></div>';
   return (
     '<div class="tab-panel">'+
@@ -1258,7 +1284,7 @@ function template(s){
       '<button type="button" class="cookie-ok" data-act="dismissCookieNotice">Got it</button>'+
     '</div>';
   var accountPill = s.user
-    ? '<button type="button" class="account-pill" data-act="setTab" data-id="settings" title="'+esc(s.user.email||'')+'"><span class="account-avatar">'+esc(((s.user.user_metadata&&(s.user.user_metadata.full_name||s.user.user_metadata.name))||s.user.email||'?').charAt(0).toUpperCase())+'</span></button>'
+    ? '<button type="button" class="account-pill" data-act="setTab" data-id="settings" title="'+esc(displayNameFor())+'"><span class="account-avatar">'+esc((displayNameFor()||'?').charAt(0).toUpperCase())+'</span></button>'
     : '<button type="button" class="account-pill account-pill-out" data-act="signIn">Sign in</button>';
   return (
     '<header class="app-header'+(s.scrolled?' is-collapsed':'')+'"><div class="tab-panel">'+accountPill+header+'</div></header>'+
@@ -1338,6 +1364,7 @@ root.addEventListener('click', function(e){
     case 'toggleWatched': toggleWatched(id); break;
     case 'toggleFavorite': toggleFavorite(id); break;
     case 'toggleStoryboard': toggleStoryboard(); break;
+    case 'saveDisplayName': saveDisplayName(); break;
     case 'setRating': setRating(id, Number(el.dataset.n)); break;
     case 'toggleTheoryOpen': toggleTheoryOpen(id); break;
     case 'vote': vote(id, el.dataset.type); break;
@@ -1369,6 +1396,7 @@ root.addEventListener('input', function(e){
   else if(bind === 'theoryTitle'){ setNewTheoryTitle(t.value); }
   else if(bind === 'theoryBody'){ setNewTheoryBody(t.value); }
   else if(bind.indexOf('comment:') === 0){ setCommentDraft(bind.slice(8), t.value); }
+  else if(bind === 'displayName'){ setDisplayNameDraft(t.value); }
 });
 /* 'scroll' doesn't bubble, so listen on the capture phase to catch it from .app-content */
 root.addEventListener('scroll', function(e){
