@@ -231,6 +231,15 @@ button,input,textarea{font-family:inherit;color:inherit}
 @keyframes roadmapZoomIn{ from{ opacity:0; transform:scale(.94) translateY(-4px); } to{ opacity:1; transform:scale(1) translateY(0); } }
 .roadmap-era.is-zoomed{ opacity:1; }
 .roadmap-era.is-zoomed .roadmap-era-dot{ transform:scale(1.5); box-shadow:0 0 0 4px var(--bg), 0 0 0 6px var(--accent-soft); }
+.storyboard{ margin:0 0 18px; }
+.storyboard-poster{ text-align:center; padding:6px 0 16px; }
+.storyboard-line{ display:none; }
+.storyboard-card{ position:relative; display:flex; gap:12px; padding:14px 0; border-top:1px solid var(--divider); }
+.storyboard-num{ flex:none; width:26px; height:26px; border-radius:50%; background:var(--accent-soft); color:var(--accent); font-family:var(--font-heading); font-weight:400; font-size:13px; display:flex; align-items:center; justify-content:center; margin-top:2px; }
+.storyboard-dot{ display:none; }
+.storyboard-body{ flex:1; min-width:0; }
+.storyboard-title{ font-family:var(--font-heading); font-weight:400; font-size:16px; margin:4px 0 4px; }
+.storyboard-synopsis{ font-size:13px; line-height:1.5; color:var(--text-dim); margin:0; }
 .roadmap-poster{ text-align:center; padding:6px 0 16px; }
 .roadmap-poster-eyebrow{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin:0 0 2px; }
 .roadmap-poster-title{ font-family:var(--font-heading); font-weight:400; font-size:30px; margin:0; }
@@ -650,7 +659,7 @@ function defaultState(){
     userTheories:[], showNewTheory:false, newTheoryTitle:'', newTheoryBody:'',
     theorySearch:'', theorySort:'new', scrolled:false,
     cookieNoticeDismissed:false, showLegal:false,
-    user:null, authPrompt:false, remoteComments:{}
+    user:null, authPrompt:false, remoteComments:{}, showStoryboard:false
   };
 }
 function loadState(){
@@ -702,6 +711,7 @@ function setRating(id, n){
   commit();
   saveItemStat(id);
 }
+function toggleStoryboard(){ state.showStoryboard = !state.showStoryboard; commit(); }
 function toggleFavorite(id){
   if(!requireAuth()) return;
   var was = !!state.favorites[id];
@@ -1007,6 +1017,31 @@ function renderTimeline(s){
 }
 
 /* ---------- render: home ---------- */
+function renderStoryboard(s){
+  var favSet = s.favorites;
+  var picks = ALL_ITEMS.filter(function(it){ return favSet[it.id]; });
+  if(!picks.length) return '';
+  var cards = picks.map(function(it, i){
+    return (
+      '<div class="storyboard-card">'+
+        '<div class="storyboard-num">'+(i+1)+'</div>'+
+        '<div class="storyboard-dot"></div>'+
+        '<div class="storyboard-body">'+
+          '<span class="tag-type tag-'+TYPE_TAG[it.type].replace('tag-','')+'">'+TYPE_LABEL[it.type]+'</span>'+
+          '<h4 class="storyboard-title">'+esc(it.title)+'</h4>'+
+          '<p class="storyboard-synopsis">'+esc(it.synopsis)+'</p>'+
+        '</div>'+
+      '</div>'
+    );
+  }).join('');
+  return (
+    '<div class="storyboard" data-act="stop">'+
+      '<div class="storyboard-poster"><h6 class="roadmap-poster-eyebrow">Your story</h6><h2 class="roadmap-poster-title">A hero makes their own destiny</h2></div>'+
+      '<div class="storyboard-line"></div>'+
+      cards+
+    '</div>'
+  );
+}
 function renderHomeHeader(){
   return '<h6 class="eyebrow">Your Progress</h6><h1 class="title">Rewatch</h1>';
 }
@@ -1041,7 +1076,9 @@ function renderHome(s){
     return it ? {id:it.id, title:it.title, year:it.year, type:it.type} : null;
   }).filter(Boolean);
   var favoritesBlock = favorites.length
-    ? favorites.map(function(f){
+    ? '<button type="button" class="filters-toggle" style="margin-bottom:10px" data-act="toggleStoryboard">'+(s.showStoryboard?'Hide storyboard ▾':'View as storyboard ▸')+'</button>'+
+      (s.showStoryboard ? renderStoryboard(s) : '')+
+      favorites.map(function(f){
         return '<div class="recent-row favorite-row"><span><span class="tag-type tag-'+TYPE_TAG[f.type].replace('tag-','')+'" style="margin-right:8px">'+TYPE_LABEL[f.type]+'</span>'+esc(f.title)+'</span><span class="recent-year">'+f.year+'</span></div>';
       }).join('')
     : '<p class="empty-note">No favorites yet — tap the heart on any title in the Timeline tab.</p>';
@@ -1301,6 +1338,7 @@ root.addEventListener('click', function(e){
     case 'toggleEra': toggleEra(id); break;
     case 'toggleWatched': toggleWatched(id); break;
     case 'toggleFavorite': toggleFavorite(id); break;
+    case 'toggleStoryboard': toggleStoryboard(); break;
     case 'setRating': setRating(id, Number(el.dataset.n)); break;
     case 'toggleTheoryOpen': toggleTheoryOpen(id); break;
     case 'vote': vote(id, el.dataset.type); break;
