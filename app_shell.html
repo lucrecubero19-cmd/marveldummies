@@ -114,7 +114,7 @@ button,input,textarea{font-family:inherit;color:inherit}
   .tabbar{ max-width:900px; margin:0 auto; }
 }
 
-.account-pill{ position:absolute; top:calc(env(safe-area-inset-top) + 14px); right:20px; z-index:3; border:0; cursor:pointer; }
+.account-pill{ position:absolute; top:calc(env(safe-area-inset-top) + 14px); right:20px; z-index:3; border:0; padding:0; background:none; cursor:pointer; }
 .account-avatar{ display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:50%; background:var(--accent); color:var(--bg); font-family:var(--font-heading); font-weight:400; font-size:15px; }
 .account-pill-out{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-weight:700; font-size:12px; padding:7px 12px; border-radius:20px; background:var(--surface); border:1px solid var(--divider) !important; color:var(--text); }
 
@@ -122,9 +122,8 @@ button,input,textarea{font-family:inherit;color:inherit}
 .app-header{ flex:none; position:relative; padding:calc(env(safe-area-inset-top) + 22px) 20px 16px; overflow:hidden; max-height:600px; transition:max-height .25s ease, opacity .2s ease, padding-bottom .25s ease; }
 .app-header.is-collapsed{ max-height:0; opacity:0; padding-bottom:0; }
 .app-header::after{
-  content:''; position:absolute; left:0; right:0; bottom:0; height:9px;
-  background-image:radial-gradient(circle, currentColor 32%, transparent 34%);
-  background-size:6px 6px; opacity:var(--halftone-a); color:var(--text); pointer-events:none;
+  content:''; position:absolute; left:20px; right:20px; bottom:0; height:1px;
+  border-bottom:2px dotted currentColor; opacity:.25; color:var(--text); pointer-events:none;
 }
 .eyebrow{ font-family:var(--font-heading); font-weight:400; font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:var(--accent); margin:0 0 4px; }
 .brand-title{ font-family:var(--font-heading); font-weight:400; font-size:clamp(26px,9vw,40px); letter-spacing:-0.02em; text-transform:uppercase; color:var(--accent); text-align:center; white-space:nowrap; margin:0 0 4px; }
