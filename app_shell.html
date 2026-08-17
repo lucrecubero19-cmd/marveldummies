@@ -1,0 +1,922 @@
+<meta charset="utf-8">
+<title>Marvel for Dummies</title>
+<meta name="description" content="A rewatch companion for the MCU — story order, release order, a Doomsday path, progress tracking and fan theories.">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#7e1019">
+<script>
+(function(){
+  try{
+    var raw = localStorage.getItem('mcuRewatch.v1');
+    var theme = null;
+    if(raw){ var parsed = JSON.parse(raw); theme = parsed && parsed.theme; }
+    if(!theme){ theme = (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) ? 'comic' : 'broadsheet'; }
+    document.documentElement.setAttribute('data-app-theme', theme);
+  }catch(e){ document.documentElement.setAttribute('data-app-theme','comic'); }
+})();
+</script>
+<style>
+@font-face{
+  font-family:'Anton';
+  src:url(data:font/woff2;base64,__FONT_ANTON__) format('woff2');
+  font-weight:400;
+  font-style:normal;
+  font-display:swap;
+}
+@font-face{
+  font-family:'Poppins';
+  src:url(data:font/woff2;base64,__FONT_POPPINS_400__) format('woff2');
+  font-weight:400;
+  font-style:normal;
+  font-display:swap;
+}
+@font-face{
+  font-family:'Poppins';
+  src:url(data:font/woff2;base64,__FONT_POPPINS_500__) format('woff2');
+  font-weight:500;
+  font-style:normal;
+  font-display:swap;
+}
+@font-face{
+  font-family:'Poppins';
+  src:url(data:font/woff2;base64,__FONT_POPPINS_600__) format('woff2');
+  font-weight:600;
+  font-style:normal;
+  font-display:swap;
+}
+@font-face{
+  font-family:'Poppins';
+  src:url(data:font/woff2;base64,__FONT_POPPINS_700__) format('woff2');
+  font-weight:700;
+  font-style:normal;
+  font-display:swap;
+}
+
+:root{
+  --font-heading:'Anton','Poppins',system-ui,sans-serif;
+  --font-body:'Poppins',system-ui,sans-serif;
+  /* comic — default/baseline */
+  --bg:#a01623; --bg-deep:#6f0e16; --surface:#8c1420; --surface-2:#6f0e16;
+  --text:#fff6e6; --text-dim:rgba(255,246,230,.64); --text-faint:rgba(255,246,230,.4);
+  --accent:#ffcb05; --accent-ink:#3a2a00; --accent-soft:rgba(255,203,5,.16);
+  --heat:#ff7a3c;
+  --divider:rgba(255,246,230,.16);
+  --danger-text:#ffb9b9; --danger-border:rgba(255,185,185,.45);
+  --chip-radius:999px; --card-radius:3px;
+  --halftone-a:.14;
+  --shadow:0 20px 50px rgba(0,0,0,.4);
+  --tag-movie-bg:var(--accent-soft); --tag-movie-fg:var(--accent);
+  --tag-series-bg:rgba(255,255,255,.16); --tag-series-fg:#fff;
+  --tag-special-bg:rgba(255,255,255,.10); --tag-special-fg:var(--text-dim);
+  --tag-short-fg:var(--accent);
+}
+:root[data-app-theme="broadsheet"]{
+  --bg:#f1efe8; --bg-deep:#dedad0; --surface:#ffffff; --surface-2:#e9e5db;
+  --text:#221f1a; --text-dim:rgba(34,31,26,.64); --text-faint:rgba(34,31,26,.42);
+  --accent:#0088b0; --accent-ink:#ffffff; --accent-soft:rgba(0,136,176,.12);
+  --heat:#d6006c;
+  --divider:rgba(34,31,26,.15);
+  --danger-text:#9c1c1c; --danger-border:rgba(156,28,28,.35);
+  --chip-radius:3px; --card-radius:2px;
+  --halftone-a:.06;
+  --shadow:0 16px 40px rgba(34,31,26,.16);
+  --tag-movie-bg:var(--accent-soft); --tag-movie-fg:var(--accent);
+  --tag-series-bg:rgba(214,0,108,.12); --tag-series-fg:#a8005a;
+  --tag-special-bg:var(--surface-2); --tag-special-fg:var(--text-dim);
+  --tag-short-fg:var(--accent);
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  background:var(--bg-deep); color:var(--text);
+  font-family:var(--font-body);
+  -webkit-font-smoothing:antialiased; overscroll-behavior-y:none;
+}
+::selection{background:var(--accent-soft)}
+button,input,textarea{font-family:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+#app{
+  max-width:560px; margin:0 auto; height:100vh; height:100dvh;
+  background:var(--bg); display:flex; flex-direction:column; position:relative;
+  transition:background .25s ease, color .25s ease;
+}
+@media (min-width:640px){
+  #app{ height:calc(100dvh - 32px); margin:16px auto; border-radius:18px; box-shadow:var(--shadow); overflow:hidden; }
+}
+
+/* ---------- header ---------- */
+.app-header{ flex:none; position:relative; padding:calc(env(safe-area-inset-top) + 22px) 20px 16px; overflow:hidden; max-height:600px; transition:max-height .25s ease, opacity .2s ease, padding-bottom .25s ease; }
+.app-header.is-collapsed{ max-height:0; opacity:0; padding-bottom:0; }
+.app-header::after{
+  content:''; position:absolute; left:0; right:0; bottom:0; height:9px;
+  background-image:radial-gradient(circle, currentColor 32%, transparent 34%);
+  background-size:6px 6px; opacity:var(--halftone-a); color:var(--text); pointer-events:none;
+}
+.eyebrow{ font-family:var(--font-heading); font-weight:400; font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:var(--accent); margin:0 0 4px; }
+.brand-title{ font-family:var(--font-heading); font-weight:400; font-size:clamp(26px,9vw,40px); letter-spacing:-0.02em; text-transform:uppercase; color:var(--accent); text-align:center; white-space:nowrap; margin:0 0 4px; }
+.brand-sub{ font-family:var(--font-heading); font-weight:400; font-size:28px; margin:0 0 10px; text-align:center; text-wrap:balance; }
+.title{ font-family:var(--font-heading); font-weight:400; font-size:29px; line-height:1.06; margin:0; text-wrap:balance; }
+.caption{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:11.5px; color:var(--text-dim); margin:8px 0 0; }
+.filters-toggle{ display:inline-block; margin-top:10px; padding:0; border:0; background:none; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:12px; font-weight:600; color:var(--text-dim); cursor:pointer; }
+.filters-toggle:active{ color:var(--accent) }
+
+.search{ width:100%; margin-top:14px; padding:10px 12px; font-size:14px; background:var(--surface-2); border:1px solid var(--divider); border-radius:var(--card-radius); color:var(--text); }
+.search::placeholder{ color:var(--text-faint) }
+
+.seg{ display:flex; margin-top:12px; border:1px solid var(--divider); border-radius:var(--card-radius); overflow:hidden; }
+.seg label{ position:relative; flex:1; text-align:center; padding:8px 4px; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:11.5px; font-weight:700; letter-spacing:.01em; cursor:pointer; color:var(--text-dim); }
+.seg label+label{ border-left:1px solid var(--divider) }
+.seg input{ position:absolute; opacity:0; width:0; height:0; pointer-events:none; }
+.seg label:has(input:checked){ background:var(--accent); color:var(--accent-ink); }
+.seg label:has(input:focus-visible){ outline:2px solid var(--accent); outline-offset:-2px; }
+
+/* ---------- content ---------- */
+.app-content{ flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:2px 20px 28px; scrollbar-width:none; }
+.app-content::-webkit-scrollbar{ display:none }
+.tab-panel{ animation:fadeSlide .22s ease both; }
+@keyframes fadeSlide{ from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+@media (prefers-reduced-motion:reduce){
+  .tab-panel{ animation:none }
+  .item-check,.theory,.era-head,.tab-btn,.vote-btn,.switch,.switch-knob,.era-progress-fill{ transition:none !important }
+}
+
+.section-label{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:10.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--text-faint); margin:20px 0 10px; }
+.section-label:first-child{ margin-top:8px }
+
+/* era accordion */
+.era{ border-bottom:1px solid var(--divider); }
+.era-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 0; cursor:pointer; background:none; border:0; width:100%; text-align:left; font:inherit; color:inherit; }
+.era-head:active{ transform:scale(.98) }
+.era-head[data-static="1"]{ cursor:default }
+.era-name{ font-family:var(--font-heading); font-weight:400; font-size:18px; margin:0 0 2px; text-wrap:balance; }
+.era-years{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:11px; color:var(--text-dim); }
+.era-blurb{ font-size:12.5px; line-height:1.5; opacity:.82; margin:0 0 10px; }
+.era-meta{ display:flex; align-items:center; gap:10px; flex:none; }
+.chip{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:10.5px; font-weight:700; letter-spacing:.02em; padding:3px 10px; border-radius:var(--chip-radius); background:var(--surface-2); color:var(--text-dim); white-space:nowrap; font-variant-numeric:tabular-nums; }
+.chevron{ font-size:13px; color:var(--accent); flex:none; }
+
+/* item row */
+.item{ display:flex; gap:12px; padding:14px 0; border-top:1px solid var(--divider); }
+.item-check{ flex:none; width:26px; height:26px; margin-top:1px; border-radius:50%; border:1.5px solid var(--accent); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:13px; color:var(--accent-ink); background:transparent; transition:transform .15s ease, background .15s ease; }
+.item-check.is-on{ background:var(--accent); }
+.item-check:active{ transform:scale(.85) }
+.item-body{ flex:1; min-width:0; display:flex; flex-direction:column; gap:4px; }
+.item-tags{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.fav-btn{ margin-left:auto; flex:none; background:none; border:0; padding:0; cursor:pointer; font-size:18px; line-height:1; color:var(--text-faint); transition:transform .15s ease, color .15s ease; }
+.fav-btn.is-on{ color:var(--heat); }
+.fav-btn:active{ transform:scale(.8); }
+.tag-type{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:9.5px; font-weight:700; letter-spacing:.04em; padding:2.5px 8px; border-radius:var(--chip-radius); }
+.tag-movie{ background:var(--tag-movie-bg); color:var(--tag-movie-fg); }
+.tag-series{ background:var(--tag-series-bg); color:var(--tag-series-fg); }
+.tag-special{ background:var(--tag-special-bg); color:var(--tag-special-fg); }
+.tag-short{ background:transparent; color:var(--tag-short-fg); box-shadow:inset 0 0 0 1px var(--tag-short-fg); }
+.item-title{ font-family:var(--font-heading); font-weight:400; font-size:16px; line-height:1.25; margin:0; }
+.item-meta{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:12px; color:var(--text-dim); font-variant-numeric:tabular-nums; }
+.item-scores{ display:flex; gap:6px; align-items:center; margin-top:1px; }
+.score-chip{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:9.5px; font-weight:700; letter-spacing:.02em; padding:2.5px 8px; border-radius:var(--chip-radius); background:var(--surface-2); color:var(--text-dim); font-variant-numeric:tabular-nums; }
+.score-chip.is-hot{ background:var(--tag-movie-bg); color:var(--tag-movie-fg); }
+.score-chip.is-cold{ background:transparent; box-shadow:inset 0 0 0 1px var(--tag-short-fg); color:var(--tag-short-fg); }
+.score-chip.is-upcoming{ background:transparent; box-shadow:inset 0 0 0 1px var(--heat); color:var(--heat); font-variant-numeric:normal; }
+.item-synopsis{ font-size:13.5px; line-height:1.45; opacity:.86; margin:2px 0 0; }
+.rating{ display:flex; align-items:center; gap:7px; margin-top:5px; }
+.rating-label{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:9.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--text-faint); }
+.stars{ display:flex; gap:5px; }
+.star{ cursor:pointer; font-size:16px; line-height:1; background:none; border:0; padding:0; color:var(--divider); }
+.star.is-on{ color:var(--accent); }
+.empty-note{ font-style:italic; font-size:13.5px; color:var(--text-dim); padding:20px 0; }
+
+/* roadmap layout */
+.zoom-out-bar{ display:block; width:100%; margin:0 0 12px; padding:9px; border-radius:var(--card-radius); border:1px dashed var(--accent); background:var(--accent-soft); color:var(--accent); font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:12.5px; font-weight:700; cursor:pointer; position:sticky; top:0; z-index:2; }
+.roadmap{ position:relative; padding:10px 0 10px 26px; transition:opacity .2s ease; }
+.roadmap-line{ position:absolute; left:9px; top:8px; bottom:8px; width:2px; background:var(--divider); }
+.roadmap-era{ position:relative; padding-bottom:4px; transition:opacity .25s ease; }
+.roadmap-era.is-dimmed{ opacity:.32; }
+.roadmap-era-head{ position:relative; display:block; width:100%; text-align:left; background:none; border:0; font:inherit; color:inherit; cursor:pointer; padding:10px 0 8px; }
+.roadmap-era-head[data-static="1"]{ cursor:default; }
+.roadmap-era-dot{ position:absolute; left:-26px; top:15px; width:12px; height:12px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 4px var(--bg); }
+.roadmap-era-top{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
+.roadmap-era-name{ font-family:var(--font-heading); font-weight:400; font-size:17px; margin:0; }
+.roadmap-era-years{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:11px; color:var(--text-dim); white-space:nowrap; }
+.roadmap-era-blurb{ font-size:12px; line-height:1.5; opacity:.8; margin:4px 0 0; }
+.roadmap-item{ position:relative; padding:2px 0; transition:opacity .25s ease; }
+.roadmap-item.is-dimmed{ opacity:.32; }
+.roadmap-item-dot{ position:absolute; left:-22px; top:13px; width:7px; height:7px; border-radius:50%; background:var(--surface-2); border:1.5px solid var(--divider); box-sizing:content-box; transition:transform .25s cubic-bezier(.2,.9,.3,1), background .15s ease, border-color .15s ease; }
+.roadmap-item-dot.is-on{ background:var(--accent); border-color:var(--accent); }
+.roadmap-item-dot.is-focused{ transform:scale(1.7); }
+.roadmap-item-compact{ display:flex; align-items:center; gap:8px; padding:7px 0; cursor:pointer; background:none; border:0; width:100%; text-align:left; font:inherit; color:inherit; }
+.roadmap-item-compact .roadmap-item-title{ font-family:var(--font-heading); font-weight:400; font-size:14.5px; margin:0; line-height:1.2; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.roadmap-item-compact-year{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:11px; color:var(--text-faint); flex:none; font-variant-numeric:tabular-nums; }
+.roadmap-item-detail{ margin:0 0 10px; padding:12px 14px; border-radius:var(--card-radius); background:var(--surface); border:1px solid var(--divider); animation:roadmapZoomIn .22s cubic-bezier(.2,.9,.3,1) both; }
+@keyframes roadmapZoomIn{ from{ opacity:0; transform:scale(.94) translateY(-4px); } to{ opacity:1; transform:scale(1) translateY(0); } }
+.roadmap-item-meta{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:11px; color:var(--text-dim); font-variant-numeric:tabular-nums; margin-bottom:6px; }
+.roadmap-item-synopsis{ font-size:13px; line-height:1.5; opacity:.86; margin:8px 0 0; }
+.zoom-out-link{ display:inline-block; margin-top:10px; padding:0; border:0; background:none; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:11.5px; font-weight:700; color:var(--accent); cursor:pointer; }
+
+/* home / progress */
+.stat-row{ display:flex; align-items:baseline; gap:12px; padding:10px 0 2px; }
+.stat-pct{ font-family:var(--font-heading); font-weight:400; font-size:52px; line-height:1; color:var(--accent); font-variant-numeric:tabular-nums; }
+.stat-sub{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:12.5px; color:var(--text-dim); line-height:1.35; }
+.stat-caption{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:12.5px; margin:10px 0 6px; color:var(--text-dim); }
+.era-progress{ margin-bottom:15px; }
+.era-progress-row{ display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px; }
+.era-progress-row span:last-child{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; color:var(--text-dim); font-variant-numeric:tabular-nums; }
+.era-progress-track{ height:6px; border-radius:3px; background:var(--surface-2); overflow:hidden; }
+.era-progress-fill{ height:100%; background:var(--accent); border-radius:3px; transition:width .35s ease; }
+.recent-row{ display:flex; justify-content:space-between; padding:10px 0; border-top:1px solid var(--divider); font-size:14.5px; }
+.recent-year{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; color:var(--text-dim); font-size:12.5px; font-variant-numeric:tabular-nums; }
+.next-release{ border:1.5px solid var(--heat); border-radius:var(--card-radius); overflow:hidden; margin-bottom:6px; }
+.next-release-row{ display:flex; justify-content:space-between; align-items:center; gap:10px; padding:12px 14px; }
+.next-release-row+.next-release-row{ border-top:1px solid var(--divider); }
+.next-release-title{ font-family:var(--font-heading); font-weight:400; font-size:15px; }
+.next-release-type{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:10px; font-weight:700; letter-spacing:.04em; color:var(--text-dim); margin-top:2px; }
+.next-release-date{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:12px; font-weight:700; color:var(--heat); white-space:nowrap; font-variant-numeric:tabular-nums; }
+
+/* buttons / forms */
+.btn{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-weight:700; font-size:13px; letter-spacing:.01em; padding:11px 16px; border-radius:var(--card-radius); border:1px solid var(--divider); background:transparent; color:var(--text); cursor:pointer; width:100%; text-align:center; }
+.btn:active{ transform:scale(.98) }
+.btn-primary{ background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+.btn-danger{ color:var(--danger-text); border-color:var(--danger-border); }
+.field-input,.field-textarea{ width:100%; padding:9px 11px; font-size:14px; color:var(--text); background:var(--surface-2); border:1px solid var(--divider); border-radius:var(--card-radius); }
+.field-textarea{ min-height:78px; resize:vertical; }
+.theory-form{ display:flex; flex-direction:column; gap:8px; padding:14px 0; border-bottom:1px solid var(--divider); }
+
+/* theories */
+.theory{ padding:15px 0; border-top:1px solid var(--divider); cursor:pointer; }
+.theory:active{ transform:scale(.995) }
+.theory-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+.theory-title-row{ flex:1; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.theory-title{ font-family:var(--font-heading); font-weight:400; font-size:15.5px; line-height:1.3; margin:0; text-wrap:balance; }
+.tag-mine{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:9.5px; font-weight:700; letter-spacing:.04em; padding:2.5px 8px; border-radius:var(--chip-radius); box-shadow:inset 0 0 0 1px var(--accent); color:var(--accent); }
+.delete-link{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:11.5px; color:var(--text-dim); cursor:pointer; }
+.theory-chevron{ font-size:12px; color:var(--accent); flex:none; }
+.heat-row{ display:flex; align-items:center; gap:6px; margin-top:8px; }
+.heat-label{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:9.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--text-faint); }
+.heat-dots{ display:flex; gap:4px; }
+.heat-dot{ width:6px; height:6px; border-radius:50%; background:var(--divider); }
+.heat-dot.is-on{ background:var(--heat); }
+.theory-body{ font-size:13.5px; line-height:1.55; opacity:.9; margin:10px 0 0; }
+.theory-source{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:10.5px; letter-spacing:.02em; color:var(--text-faint); margin:6px 0 0; }
+.vote-row{ display:flex; gap:8px; margin-top:12px; }
+.vote-btn{ display:inline-flex; align-items:center; gap:6px; padding:6px 13px; border-radius:999px; border:1px solid var(--divider); font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:12px; cursor:pointer; background:transparent; color:var(--text); font-variant-numeric:tabular-nums; }
+.vote-btn:active{ transform:scale(.95) }
+.vote-btn.is-on{ background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+.comments-block{ margin-top:14px; }
+.comment-row{ display:flex; justify-content:space-between; align-items:flex-start; gap:8px; padding:9px 0; border-top:1px solid var(--divider); font-size:12.5px; }
+.comment-row span:first-child{ flex:1; opacity:.88; }
+.comment-input-row{ display:flex; gap:8px; margin-top:10px; }
+.comment-input{ flex:1; font-size:12.5px; min-height:34px; padding:7px 10px; }
+.comment-post{ width:auto; padding:7px 14px; font-size:12px; }
+
+/* settings */
+.pref-row{ display:flex; justify-content:space-between; align-items:center; gap:12px; padding:14px 0; border-top:1px solid var(--divider); }
+.pref-label{ font-size:15px; }
+.switch{ cursor:pointer; flex:none; width:44px; height:25px; border-radius:13px; background:var(--surface-2); border:1px solid var(--divider); display:flex; align-items:center; padding:2px; box-sizing:border-box; transition:background .15s ease, border-color .15s ease; }
+.switch.is-on{ background:var(--accent); border-color:var(--accent); }
+.switch-knob{ width:19px; height:19px; border-radius:50%; background:var(--bg); box-shadow:0 1px 3px rgba(0,0,0,.3); transition:transform .15s ease; }
+.switch.is-on .switch-knob{ transform:translateX(19px); }
+.theme-row{ padding:14px 0; border-top:1px solid var(--divider); }
+.theme-options{ display:flex; gap:10px; margin-top:10px; }
+.theme-swatch{ flex:1; padding:12px; border-radius:var(--card-radius); border:1.5px solid var(--divider); cursor:pointer; text-align:left; background:none; color:inherit; font:inherit; }
+.theme-swatch.is-on{ border-color:var(--accent); }
+.swatch-dots{ display:flex; gap:5px; margin-bottom:8px; }
+.swatch-dot{ width:14px; height:14px; border-radius:50%; }
+.swatch-name{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:12.5px; font-weight:700; display:block; }
+.swatch-desc{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:10.5px; color:var(--text-dim); display:block; margin-top:2px; }
+.about-text{ font-size:13.5px; line-height:1.6; color:var(--text-dim); padding-top:6px; }
+
+/* tab bar */
+.tabbar{ flex:none; display:flex; border-top:1px solid var(--divider); background:var(--bg); padding-bottom:env(safe-area-inset-bottom); }
+.tab-btn{ flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; padding:9px 0 8px; background:none; border:0; border-top:2px solid transparent; margin-top:-1px; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:10px; font-weight:700; letter-spacing:.03em; text-transform:uppercase; color:var(--text-dim); cursor:pointer; transition:color .2s ease, border-color .2s ease; }
+.tab-btn.is-on{ color:var(--accent); border-top-color:var(--accent); }
+.tab-btn:active{ transform:scale(.95) }
+.tab-icon{ width:20px; height:20px; }
+
+/* ---------- opening transition ---------- */
+.app-splash{ position:fixed; inset:0; z-index:9999; display:flex; }
+.app-splash.is-leaving{ animation:splashOut .5s ease forwards; }
+.app-splash-inner{ margin:0 auto; max-width:560px; width:100%; height:100%; background:var(--bg); position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; overflow:hidden; }
+.app-splash-flash{ position:absolute; inset:0; background:#fff; animation:splashFlash .5s ease forwards; }
+.app-splash-word{ position:relative; font-family:var(--font-heading); font-weight:600; font-size:64px; color:var(--accent); text-transform:uppercase; text-align:center; line-height:1.1; animation:splashZoom 1.1s cubic-bezier(.2,.9,.3,1) forwards; }
+.app-splash-kicker{ position:relative; font-family:var(--font-heading); font-weight:600; font-size:28px; color:var(--text); letter-spacing:.25em; text-transform:uppercase; margin-top:10px; opacity:0; animation:splashSub 1.1s ease forwards; }
+@keyframes splashZoom{ 0%{ opacity:0; transform:scale(2.4); letter-spacing:.3em; } 55%{ opacity:1; transform:scale(1); letter-spacing:.02em; } 100%{ opacity:1; transform:scale(1); } }
+@keyframes splashSub{ 0%{ opacity:0; transform:translateY(10px); } 70%{ opacity:0; } 100%{ opacity:1; transform:translateY(0); } }
+@keyframes splashFlash{ 0%{ opacity:.9; } 100%{ opacity:0; } }
+@keyframes splashOut{ to{ opacity:0; visibility:hidden; } }
+@media (prefers-reduced-motion:reduce){
+  .app-splash{ display:none !important; }
+}
+</style>
+<div id="app"></div>
+<script>
+"use strict";
+__DATA_JS__
+
+function fmtMin(m){ return m>=60 ? Math.round(m/60)+' hr' : m+' min'; }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+
+var STORAGE_KEY = 'mcuRewatch.v1';
+function defaultState(){
+  var prefersDark = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches;
+  return {
+    tab:'timeline', section:'connected', viewMode:'chrono', search:'', filtersOpen:false,
+    expandedEra:'origins', watched:{}, ratings:{}, watchedOrder:[],
+    favorites:{}, favoriteOrder:[], layout:'list', roadmapFocus:null,
+    notif:true, theme: prefersDark ? 'comic' : 'broadsheet',
+    theoryOpen:{}, upvotes:{}, downvotes:{}, myVote:{}, comments:{}, commentDrafts:{},
+    userTheories:[], showNewTheory:false, newTheoryTitle:'', newTheoryBody:'',
+    theorySearch:'', theorySort:'new', scrolled:false
+  };
+}
+function loadState(){
+  try{
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){ return Object.assign(defaultState(), JSON.parse(raw)); }
+  }catch(e){}
+  return defaultState();
+}
+var state = loadState();
+function persist(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){} }
+function commit(){ persist(); render(); }
+
+/* ---------- actions ---------- */
+function setTab(t){ state.tab=t; state.scrolled=false; state.roadmapFocus=null; commit(); }
+function setSection(v){ state.section=v; commit(); }
+function setViewMode(v){ state.viewMode=v; state.roadmapFocus=null; commit(); }
+function setSearch(v){ state.search=v; commit(); }
+function toggleFilters(){ state.filtersOpen = !state.filtersOpen; commit(); }
+function setTheorySearch(v){ state.theorySearch=v; commit(); }
+function setTheorySort(v){ state.theorySort=v; commit(); }
+function toggleEra(id){ state.expandedEra = (state.expandedEra===id ? null : id); state.roadmapFocus=null; commit(); }
+function toggleWatched(id){
+  var was = !!state.watched[id];
+  state.watched[id] = !was;
+  state.watchedOrder = state.watchedOrder.filter(function(x){ return x!==id; });
+  if(!was) state.watchedOrder.unshift(id);
+  commit();
+}
+function setRating(id, n){ state.ratings[id] = (state.ratings[id]===n ? 0 : n); commit(); }
+function toggleFavorite(id){
+  var was = !!state.favorites[id];
+  state.favorites[id] = !was;
+  state.favoriteOrder = state.favoriteOrder.filter(function(x){ return x!==id; });
+  if(!was) state.favoriteOrder.unshift(id);
+  commit();
+}
+function toggleNotif(){ state.notif = !state.notif; commit(); }
+function setLayout(v){ state.layout = v; state.roadmapFocus = null; commit(); }
+function focusRoadmapItem(id){
+  var was = state.roadmapFocus === id;
+  state.roadmapFocus = was ? null : id;
+  commit();
+  if(!was){
+    var el = document.getElementById('rm-'+id);
+    if(el && el.scrollIntoView) el.scrollIntoView({block:'center', behavior:'smooth'});
+  }
+}
+function setTheme(t){ state.theme = t; document.documentElement.setAttribute('data-app-theme', t); commit(); }
+function resetProgress(){ state.watched={}; state.ratings={}; state.watchedOrder=[]; state.favorites={}; state.favoriteOrder=[]; commit(); }
+
+function toggleTheoryOpen(id){ state.theoryOpen[id] = !state.theoryOpen[id]; commit(); }
+function vote(id, type){
+  var current = state.myVote[id];
+  var next = type;
+  function dec(obj){ obj[id] = Math.max(0, (obj[id]||0)-1); }
+  function inc(obj){ obj[id] = (obj[id]||0)+1; }
+  if(current === type){ dec(type==='agree'?state.upvotes:state.downvotes); next = null; }
+  else{
+    if(current) dec(current==='agree'?state.upvotes:state.downvotes);
+    inc(type==='agree'?state.upvotes:state.downvotes);
+  }
+  state.myVote[id] = next;
+  commit();
+}
+function setCommentDraft(id, v){ state.commentDrafts[id]=v; commit(); }
+function addComment(id){
+  var text = (state.commentDrafts[id]||'').trim();
+  if(!text) return;
+  state.comments[id] = (state.comments[id]||[]).concat([text]);
+  state.commentDrafts[id] = '';
+  commit();
+}
+function deleteComment(id, idx){ state.comments[id] = (state.comments[id]||[]).filter(function(_,i){ return i!==idx; }); commit(); }
+function deleteTheory(id){ state.userTheories = state.userTheories.filter(function(t){ return t.id!==id; }); commit(); }
+function toggleNewTheoryForm(){ state.showNewTheory = !state.showNewTheory; commit(); }
+function setNewTheoryTitle(v){ state.newTheoryTitle=v; commit(); }
+function setNewTheoryBody(v){ state.newTheoryBody=v; commit(); }
+function submitTheory(){
+  var title = state.newTheoryTitle.trim(), body = state.newTheoryBody.trim();
+  if(!title || !body) return;
+  state.userTheories = [{id:'user-'+Date.now(), title:title, body:body, heat:1, mine:true}].concat(state.userTheories);
+  state.newTheoryTitle=''; state.newTheoryBody=''; state.showNewTheory=false;
+  commit();
+}
+
+/* ---------- icons ---------- */
+var ICONS = {
+  timeline:'<svg class="tab-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="3" y1="6" x2="17" y2="6"/><line x1="3" y1="10" x2="13" y2="10"/><line x1="3" y1="14" x2="15" y2="14"/></svg>',
+  home:'<svg class="tab-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="2.1" fill="currentColor" stroke="none"/></svg>',
+  theories:'<svg class="tab-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M4 5.5A1.5 1.5 0 015.5 4h9A1.5 1.5 0 0116 5.5v6A1.5 1.5 0 0114.5 13H10l-3.2 2.6V13H5.5A1.5 1.5 0 014 11.5v-6z"/></svg>',
+  settings:'<svg class="tab-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10" cy="10" r="6"/><circle cx="10" cy="10" r="2" fill="currentColor" stroke="none"/><line x1="10" y1="1.5" x2="10" y2="3.5"/><line x1="10" y1="16.5" x2="10" y2="18.5"/><line x1="1.5" y1="10" x2="3.5" y2="10"/><line x1="16.5" y1="10" x2="18.5" y2="10"/></svg>'
+};
+
+/* ---------- derived data helpers ---------- */
+function filteredEras(s){
+  var q = s.search.trim().toLowerCase();
+  var sourceEras;
+  if(s.viewMode === 'doomsday'){
+    var items = DOOMSDAY_PATH.map(function(id){ return ALL_ITEMS.find(function(it){ return it.id===id; }); }).filter(Boolean);
+    sourceEras = [{id:'doomsday-path', name:'Path to Doomsday', years:'Curated multiverse build-up', blurb:"A hand-picked route through only the titles that build directly toward Avengers: Doomsday — skipping side stories so the multiverse threat's escalation reads as one continuous line.", items:items}];
+  } else if(s.viewMode === 'release'){
+    var base = s.section === 'other' ? OTHER_ERAS : RAW_ERAS;
+    var flat = [];
+    base.forEach(function(e){ e.items.forEach(function(it){ flat.push(it); }); });
+    flat.sort(function(a,b){ return a.year-b.year; });
+    sourceEras = [{id:'by-release', name:'By Release Year', years:'', blurb:"The order these actually came out in theaters and on Disney+ — useful if you want to see the story the way the writers built it, twists and retcons included, rather than smoothed into in-universe order.", items:flat}];
+  } else {
+    sourceEras = s.section === 'other' ? OTHER_ERAS : RAW_ERAS;
+  }
+  return sourceEras.map(function(era){
+    var items = era.items.filter(function(it){ return !q || it.title.toLowerCase().indexOf(q) !== -1; });
+    var eraWatched = era.items.filter(function(it){ return s.watched[it.id]; }).length;
+    var collapsible = s.viewMode === 'chrono';
+    var expanded = collapsible ? (s.expandedEra===era.id || !!q) : true;
+    return {
+      id: era.id, name: era.name, years: era.years, blurb: era.blurb||'', items: items,
+      expanded: expanded, collapsible: collapsible,
+      chevron: collapsible ? (expanded ? '▾' : '▸') : '',
+      progressLabel: eraWatched + '/' + era.items.length
+    };
+  }).filter(function(era){ return era.items.length > 0 || !q; });
+}
+
+/* ---------- render: timeline ---------- */
+function renderItem(it, s){
+  var watched = !!s.watched[it.id];
+  var favorite = !!s.favorites[it.id];
+  var rating = s.ratings[it.id] || 0;
+  var stars = '';
+  if(watched){
+    var starEls = '';
+    for(var n=1;n<=5;n++){
+      starEls += '<button type="button" class="star '+(n<=rating?'is-on':'')+'" data-act="setRating" data-id="'+esc(it.id)+'" data-n="'+n+'">★</button>';
+    }
+    stars = '<div class="rating"><span class="rating-label">Your rating</span><div class="stars">'+starEls+'</div></div>';
+  }
+  var scoresBlock;
+  if(it.upcoming){
+    scoresBlock = '<div class="item-scores"><span class="score-chip is-upcoming">UPCOMING · '+esc(it.releaseDate||'TBA')+'</span></div>';
+  } else {
+    var critic = it.critic != null ? it.critic : 65;
+    var fan = fanScoreFor(it.id, critic).toFixed(1);
+    var criticCls = critic>=75 ? 'is-hot' : (critic>=45 ? '' : 'is-cold');
+    scoresBlock = '<div class="item-scores"><span class="score-chip '+criticCls+'">CRITICS '+critic+'%</span><span class="score-chip">FANS '+fan+'/5</span></div>';
+  }
+  return (
+    '<div class="item">'+
+      '<button type="button" class="item-check '+(watched?'is-on':'')+'" data-act="toggleWatched" data-id="'+esc(it.id)+'" aria-label="Mark '+esc(it.title)+' as watched">'+(watched?'✓':'')+'</button>'+
+      '<div class="item-body">'+
+        '<div class="item-tags">'+
+          '<span class="tag-type tag-'+TYPE_TAG[it.type].replace('tag-','')+'">'+TYPE_LABEL[it.type]+'</span>'+
+          '<h4 class="item-title">'+esc(it.title)+'</h4>'+
+          '<button type="button" class="fav-btn '+(favorite?'is-on':'')+'" data-act="toggleFavorite" data-id="'+esc(it.id)+'" aria-label="'+(favorite?'Remove '+esc(it.title)+' from favorites':'Add '+esc(it.title)+' to favorites')+'">'+(favorite?'♥':'♡')+'</button>'+
+        '</div>'+
+        '<div class="item-meta">'+it.year+' · '+esc(it.runtime)+'</div>'+
+        scoresBlock+
+        '<p class="item-synopsis">'+esc(it.synopsis)+'</p>'+
+        stars+
+      '</div>'+
+    '</div>'
+  );
+}
+function renderEra(era){
+  var head = era.collapsible
+    ? '<button type="button" class="era-head" data-act="toggleEra" data-id="'+esc(era.id)+'">'+
+        '<div><h3 class="era-name">'+esc(era.name)+'</h3><div class="era-years">'+esc(era.years)+'</div></div>'+
+        '<div class="era-meta"><span class="chip">'+era.progressLabel+'</span><span class="chevron">'+era.chevron+'</span></div>'+
+      '</button>'
+    : '<div class="era-head" data-static="1">'+
+        '<div><h3 class="era-name">'+esc(era.name)+'</h3><div class="era-years">'+esc(era.years)+'</div></div>'+
+        '<div class="era-meta"><span class="chip">'+era.progressLabel+'</span></div>'+
+      '</div>';
+  var blurb = era.blurb ? '<p class="era-blurb">'+esc(era.blurb)+'</p>' : '';
+  var items = era.expanded ? era.items.map(function(it){ return renderItem(it, state); }).join('') : '';
+  return '<div class="era">'+head+blurb+items+'</div>';
+}
+function renderTimelineHeader(s){
+  var filtersBlock = '';
+  if(s.filtersOpen){
+    var sectionToggle = s.viewMode !== 'doomsday' ? (
+      '<div class="seg" style="margin-top:8px">'+
+        '<label><input type="radio" name="section" data-value="connected" '+(s.section!=='other'?'checked':'')+'>Connected</label>'+
+        '<label><input type="radio" name="section" data-value="other" '+(s.section==='other'?'checked':'')+'>Other Adaptations</label>'+
+      '</div>'
+    ) : '';
+    filtersBlock =
+      '<input class="search" type="text" placeholder="Search titles…" value="'+esc(s.search)+'" data-bind="search" data-focus-id="search" style="margin-top:8px;margin-bottom:4px">'+
+      '<p class="caption">In-universe chronological order, grouped by era.</p>'+
+      '<div class="seg" style="margin-top:8px">'+
+        '<label><input type="radio" name="viewmode" data-value="chrono" '+(s.viewMode==='chrono'?'checked':'')+'>Story Order</label>'+
+        '<label><input type="radio" name="viewmode" data-value="release" '+(s.viewMode==='release'?'checked':'')+'>Release Order</label>'+
+        '<label><input type="radio" name="viewmode" data-value="doomsday" '+(s.viewMode==='doomsday'?'checked':'')+'>Doomsday Path</label>'+
+      '</div>'+
+      sectionToggle;
+  }
+  return (
+    '<h6 class="brand-title">Marvel for Dummies</h6>'+
+    '<h1 class="brand-sub">Timeline</h1>'+
+    '<button type="button" class="filters-toggle" data-act="toggleFilters" style="margin-top:6px">'+(s.filtersOpen?'Hide filters ▾':'Filters ▸')+'</button>'+
+    filtersBlock
+  );
+}
+function renderRoadmapItem(it, s){
+  var watched = !!s.watched[it.id];
+  var favorite = !!s.favorites[it.id];
+  var rating = s.ratings[it.id] || 0;
+  var focused = s.roadmapFocus === it.id;
+  var dimmed = s.roadmapFocus && !focused;
+  var meta = it.upcoming ? ('UPCOMING · '+esc(it.releaseDate||'TBA')) : (it.year+' · '+esc(it.runtime));
+
+  var compact =
+    '<div class="roadmap-item-compact" data-act="focusRoadmapItem" data-id="'+esc(it.id)+'">'+
+      '<span class="tag-type tag-'+TYPE_TAG[it.type].replace('tag-','')+'">'+TYPE_LABEL[it.type]+'</span>'+
+      '<h4 class="roadmap-item-title">'+esc(it.title)+'</h4>'+
+      '<span class="roadmap-item-compact-year">'+(it.upcoming?'':it.year)+'</span>'+
+      '<button type="button" class="fav-btn '+(favorite?'is-on':'')+'" data-act="toggleFavorite" data-id="'+esc(it.id)+'" style="font-size:15px" aria-label="'+(favorite?'Remove from favorites':'Add to favorites')+'">'+(favorite?'♥':'♡')+'</button>'+
+      '<button type="button" class="item-check '+(watched?'is-on':'')+'" data-act="toggleWatched" data-id="'+esc(it.id)+'" style="width:20px;height:20px;font-size:11px" aria-label="Mark '+esc(it.title)+' as watched">'+(watched?'✓':'')+'</button>'+
+    '</div>';
+
+  var detail = '';
+  if(focused){
+    var stars = '';
+    if(watched){
+      var starEls = '';
+      for(var n=1;n<=5;n++){
+        starEls += '<button type="button" class="star '+(n<=rating?'is-on':'')+'" data-act="setRating" data-id="'+esc(it.id)+'" data-n="'+n+'" style="font-size:15px">★</button>';
+      }
+      stars = '<div class="rating" style="margin-top:6px"><span class="rating-label">Your rating</span><div class="stars">'+starEls+'</div></div>';
+    }
+    var scoresBlock;
+    if(it.upcoming){
+      scoresBlock = '<div class="item-scores"><span class="score-chip is-upcoming">UPCOMING · '+esc(it.releaseDate||'TBA')+'</span></div>';
+    } else {
+      var critic = it.critic != null ? it.critic : 65;
+      var fan = fanScoreFor(it.id, critic).toFixed(1);
+      var criticCls = critic>=75 ? 'is-hot' : (critic>=45 ? '' : 'is-cold');
+      scoresBlock = '<div class="item-scores"><span class="score-chip '+criticCls+'">CRITICS '+critic+'%</span><span class="score-chip">FANS '+fan+'/5</span></div>';
+    }
+    detail =
+      '<div class="roadmap-item-detail">'+
+        '<div class="roadmap-item-meta">'+meta+'</div>'+
+        scoresBlock+
+        '<p class="roadmap-item-synopsis">'+esc(it.synopsis)+'</p>'+
+        stars+
+        '<button type="button" class="zoom-out-link" data-act="focusRoadmapItem" data-id="'+esc(it.id)+'">▲ Collapse</button>'+
+      '</div>';
+  }
+
+  return (
+    '<div class="roadmap-item'+(focused?' is-focused':'')+(dimmed?' is-dimmed':'')+'" id="rm-'+esc(it.id)+'">'+
+      '<div class="roadmap-item-dot '+(watched?'is-on':'')+(focused?' is-focused':'')+'"></div>'+
+      compact+detail+
+    '</div>'
+  );
+}
+function renderRoadmapEra(era, s){
+  var dimmed = s.roadmapFocus && !era.items.some(function(it){ return it.id === s.roadmapFocus; });
+  var head = era.collapsible
+    ? '<button type="button" class="roadmap-era-head" data-act="toggleEra" data-id="'+esc(era.id)+'">'+
+        '<div class="roadmap-era-dot"></div>'+
+        '<div class="roadmap-era-top"><h3 class="roadmap-era-name">'+esc(era.name)+' <span class="chevron">'+era.chevron+'</span></h3><span class="roadmap-era-years">'+esc(era.years)+' · '+era.progressLabel+'</span></div>'+
+        (era.blurb&&!s.roadmapFocus?'<p class="roadmap-era-blurb">'+esc(era.blurb)+'</p>':'')+
+      '</button>'
+    : '<div class="roadmap-era-head" data-static="1">'+
+        '<div class="roadmap-era-dot"></div>'+
+        '<div class="roadmap-era-top"><h3 class="roadmap-era-name">'+esc(era.name)+'</h3><span class="roadmap-era-years">'+esc(era.years)+' · '+era.progressLabel+'</span></div>'+
+        (era.blurb&&!s.roadmapFocus?'<p class="roadmap-era-blurb">'+esc(era.blurb)+'</p>':'')+
+      '</div>';
+  var items = era.expanded ? era.items.map(function(it){ return renderRoadmapItem(it, s); }).join('') : '';
+  return '<div class="roadmap-era'+(dimmed?' is-dimmed':'')+'">'+head+items+'</div>';
+}
+function renderTimeline(s){
+  var eras = filteredEras(s);
+  if(!eras.length){
+    return '<div class="tab-panel"><p class="empty-note">No titles match &ldquo;'+esc(s.search)+'&rdquo;.</p></div>';
+  }
+  if(s.layout === 'roadmap'){
+    var zoomBar = s.roadmapFocus ? '<button type="button" class="zoom-out-bar" data-act="focusRoadmapItem" data-id="'+esc(s.roadmapFocus)+'">⤢ Zoom out to full timeline</button>' : '';
+    return '<div class="tab-panel">'+zoomBar+'<div class="roadmap'+(s.roadmapFocus?' has-focus':'')+'"><div class="roadmap-line"></div>'+eras.map(function(era){ return renderRoadmapEra(era, s); }).join('')+'</div></div>';
+  }
+  return '<div class="tab-panel">'+eras.map(renderEra).join('')+'</div>';
+}
+
+/* ---------- render: home ---------- */
+function renderHomeHeader(){
+  return '<h6 class="eyebrow">Your Progress</h6><h1 class="title">Rewatch</h1>';
+}
+function renderHome(s){
+  var totalMin=0, watchedMin=0, totalCount=0, watchedCount=0;
+  ALL_ITEMS_CONNECTED().forEach(function(it){
+    totalMin += it.min; totalCount++;
+    if(s.watched[it.id]){ watchedMin += it.min; watchedCount++; }
+  });
+  var pct = totalCount ? Math.round(watchedCount/totalCount*100) : 0;
+  var perEra = RAW_ERAS.map(function(era){
+    var w = era.items.filter(function(it){ return s.watched[it.id]; }).length;
+    var t = era.items.length;
+    return {name:era.name, w:w, t:t, pctWidth: t ? Math.round(w/t*100)+'%' : '0%'};
+  });
+  var recent = s.watchedOrder.slice(0,5).map(function(id){
+    var it = ALL_ITEMS.find(function(x){ return x.id===id; });
+    return it ? {title:it.title, year:it.year} : null;
+  }).filter(Boolean);
+
+  var eraBars = perEra.map(function(pe){
+    return '<div class="era-progress"><div class="era-progress-row"><span>'+esc(pe.name)+'</span><span>'+pe.w+'/'+pe.t+'</span></div>'+
+      '<div class="era-progress-track"><div class="era-progress-fill" style="width:'+pe.pctWidth+'"></div></div></div>';
+  }).join('');
+
+  var recentBlock = recent.length
+    ? recent.map(function(r){ return '<div class="recent-row"><span>'+esc(r.title)+'</span><span class="recent-year">'+r.year+'</span></div>'; }).join('')
+    : '<p class="empty-note">Nothing watched yet — check off a title in the Timeline tab.</p>';
+
+  var favorites = s.favoriteOrder.map(function(id){
+    var it = ALL_ITEMS.find(function(x){ return x.id===id; });
+    return it ? {id:it.id, title:it.title, year:it.year, type:it.type} : null;
+  }).filter(Boolean);
+  var favoritesBlock = favorites.length
+    ? favorites.map(function(f){
+        return '<div class="recent-row favorite-row"><span><span class="tag-type tag-'+TYPE_TAG[f.type].replace('tag-','')+'" style="margin-right:8px">'+TYPE_LABEL[f.type]+'</span>'+esc(f.title)+'</span><span class="recent-year">'+f.year+'</span></div>';
+      }).join('')
+    : '<p class="empty-note">No favorites yet — tap the heart on any title in the Timeline tab.</p>';
+
+  var upcoming = ALL_ITEMS.filter(function(it){ return it.upcoming; });
+  var nextBlock = upcoming.length
+    ? '<div class="next-release">'+upcoming.map(function(it){
+        return '<div class="next-release-row"><div><div class="next-release-title">'+esc(it.title)+'</div>'+
+          '<div class="next-release-type">'+TYPE_LABEL[it.type]+'</div></div>'+
+          '<span class="next-release-date">'+esc(it.releaseDate||'TBA')+'</span></div>';
+      }).join('')+'</div>'
+    : '';
+  var nextSection = upcoming.length ? ('<h6 class="section-label">Next release</h6>'+nextBlock) : '';
+
+  return (
+    '<div class="tab-panel">'+
+      '<div class="stat-row"><div class="stat-pct">'+pct+'%</div><div class="stat-sub">watched<br>'+watchedCount+' of '+totalCount+' titles</div></div>'+
+      '<p class="stat-caption">'+fmtMin(watchedMin)+' watched · '+fmtMin(totalMin-watchedMin)+' left</p>'+
+      nextSection+
+      '<h6 class="section-label">Your favorites</h6>'+favoritesBlock+
+      '<h6 class="section-label">Progress by era</h6>'+eraBars+
+      '<h6 class="section-label">Recently watched</h6>'+recentBlock+
+    '</div>'
+  );
+}
+function ALL_ITEMS_CONNECTED(){ return RAW_ERAS.reduce(function(a,e){ return a.concat(e.items); }, []); }
+
+/* ---------- render: theories ---------- */
+function renderTheoriesHeader(s){
+  return (
+    '<h6 class="eyebrow">Speculation</h6><h1 class="title">Fan Theories</h1>'+
+    '<p class="caption">Community hypotheses, including current chatter on Doomsday and Secret Wars — unconfirmed, for fun.</p>'+
+    '<input class="search" type="text" placeholder="Search theories…" value="'+esc(s.theorySearch)+'" data-bind="theorySearch" data-focus-id="theory-search">'+
+    '<div class="seg" style="margin-top:8px">'+
+      '<label><input type="radio" name="theorysort" data-value="new" '+(s.theorySort!=='buzz'?'checked':'')+'>Newest</label>'+
+      '<label><input type="radio" name="theorysort" data-value="buzz" '+(s.theorySort==='buzz'?'checked':'')+'>Most Buzz</label>'+
+    '</div>'
+  );
+}
+function renderTheories(s){
+  var q = s.theorySearch.trim().toLowerCase();
+  var list = s.userTheories.concat(ALL_THEORIES);
+  if(q){
+    list = list.filter(function(t){
+      return t.title.toLowerCase().indexOf(q)!==-1 || t.body.toLowerCase().indexOf(q)!==-1;
+    });
+  }
+  if(s.theorySort === 'buzz'){
+    list = list.slice().sort(function(a,b){ return b.heat - a.heat; });
+  }
+  var form = s.showNewTheory
+    ? '<div class="theory-form" data-act="stop">'+
+        '<input class="field-input" type="text" placeholder="Theory title" value="'+esc(s.newTheoryTitle)+'" data-bind="theoryTitle" data-focus-id="theory-title">'+
+        '<textarea class="field-textarea" placeholder="Explain your theory…" data-bind="theoryBody" data-focus-id="theory-body">'+esc(s.newTheoryBody)+'</textarea>'+
+        '<button type="button" class="btn btn-primary" data-act="submitTheory">Post theory</button>'+
+      '</div>'
+    : '';
+  var items = list.map(function(t){
+    var open = !!s.theoryOpen[t.id];
+    var heatDots = '';
+    for(var n=1;n<=4;n++){ heatDots += '<span class="heat-dot '+(n<=t.heat?'is-on':'')+'"></span>'; }
+    var mineTag = t.mine
+      ? '<span class="tag-mine">YOURS</span><span class="delete-link" data-act="deleteTheory" data-id="'+esc(t.id)+'">✕ Delete</span>'
+      : '';
+    var openBlock = '';
+    if(open){
+      var comments = (s.comments[t.id]||[]);
+      var commentsHtml = comments.map(function(c, idx){
+        return '<div class="comment-row"><span>'+esc(c)+'</span><span class="delete-link" data-act="deleteComment" data-id="'+esc(t.id)+'" data-idx="'+idx+'">✕</span></div>';
+      }).join('');
+      var draft = s.commentDrafts[t.id] || '';
+      var agree = s.myVote[t.id] === 'agree', disagree = s.myVote[t.id] === 'disagree';
+      var sourceLine = t.source ? '<p class="theory-source">via '+esc(t.source)+'</p>' : '';
+      openBlock =
+        '<p class="theory-body">'+esc(t.body)+'</p>'+
+        sourceLine+
+        '<div class="vote-row">'+
+          '<button type="button" class="vote-btn '+(agree?'is-on':'')+'" data-act="vote" data-id="'+esc(t.id)+'" data-type="agree">▲ Agree <span>'+(s.upvotes[t.id]||0)+'</span></button>'+
+          '<button type="button" class="vote-btn '+(disagree?'is-on':'')+'" data-act="vote" data-id="'+esc(t.id)+'" data-type="disagree">▼ Disagree <span>'+(s.downvotes[t.id]||0)+'</span></button>'+
+        '</div>'+
+        '<div class="comments-block">'+commentsHtml+
+          '<div class="comment-input-row" data-act="stop">'+
+            '<input class="field-input comment-input" type="text" placeholder="Add a comment…" value="'+esc(draft)+'" data-bind="comment:'+esc(t.id)+'" data-focus-id="comment-'+esc(t.id)+'">'+
+            '<button type="button" class="btn comment-post" data-act="addComment" data-id="'+esc(t.id)+'">Post</button>'+
+          '</div>'+
+        '</div>';
+    }
+    return (
+      '<div class="theory" data-act="toggleTheoryOpen" data-id="'+esc(t.id)+'">'+
+        '<div class="theory-head">'+
+          '<div class="theory-title-row"><h4 class="theory-title">'+esc(t.title)+'</h4>'+mineTag+'</div>'+
+          '<span class="theory-chevron">'+(open?'▾':'▸')+'</span>'+
+        '</div>'+
+        '<div class="heat-row"><span class="heat-label">Buzz</span><div class="heat-dots">'+heatDots+'</div></div>'+
+        openBlock+
+      '</div>'
+    );
+  }).join('');
+
+  if(list.length === 0){
+    items = '<p class="empty-note">No theories match &ldquo;'+esc(s.theorySearch)+'&rdquo;.</p>';
+  }
+
+  return (
+    '<div class="tab-panel">'+
+      '<button type="button" class="btn '+(s.showNewTheory?'':'btn-primary')+'" style="margin:4px 0" data-act="toggleNewTheoryForm">'+(s.showNewTheory?'Cancel':'+ Submit your own theory')+'</button>'+
+      form+items+
+    '</div>'
+  );
+}
+
+/* ---------- render: settings ---------- */
+function renderSettingsHeader(){
+  return '<h1 class="title">Settings</h1>';
+}
+function renderSettings(s){
+  return (
+    '<div class="tab-panel">'+
+      '<h6 class="section-label" style="margin-top:8px">Preferences</h6>'+
+      '<div class="pref-row"><span class="pref-label">Notifications for new releases</span>'+
+        '<div class="switch '+(s.notif?'is-on':'')+'" data-act="toggleNotif"><div class="switch-knob"></div></div></div>'+
+      '<div class="pref-row"><span class="pref-label">Timeline layout</span>'+
+        '<div class="seg" style="width:auto">'+
+          '<label style="padding:6px 14px"><input type="radio" name="layout" data-value="list" '+(s.layout!=='roadmap'?'checked':'')+'>List</label>'+
+          '<label style="padding:6px 14px"><input type="radio" name="layout" data-value="roadmap" '+(s.layout==='roadmap'?'checked':'')+'>Roadmap</label>'+
+        '</div></div>'+
+      '<div class="theme-row"><span class="pref-label">Appearance</span>'+
+        '<div class="theme-options">'+
+          '<button type="button" class="theme-swatch '+(s.theme==='comic'?'is-on':'')+'" data-act="setTheme" data-theme="comic">'+
+            '<span class="swatch-dots"><span class="swatch-dot" style="background:#a01623"></span><span class="swatch-dot" style="background:#ffcb05"></span></span>'+
+            '<span class="swatch-name">Comic Book</span><span class="swatch-desc">Red &amp; gold, high contrast</span>'+
+          '</button>'+
+          '<button type="button" class="theme-swatch '+(s.theme==='broadsheet'?'is-on':'')+'" data-act="setTheme" data-theme="broadsheet">'+
+            '<span class="swatch-dots"><span class="swatch-dot" style="background:#f1efe8;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)"></span><span class="swatch-dot" style="background:#0088b0"></span></span>'+
+            '<span class="swatch-name">Broadsheet</span><span class="swatch-desc">Newsprint, light &amp; airy</span>'+
+          '</button>'+
+        '</div>'+
+      '</div>'+
+      '<h6 class="section-label">Data</h6>'+
+      '<div style="padding:12px 0;border-top:1px solid var(--divider)">'+
+        '<button type="button" class="btn btn-danger" data-act="resetProgress">Reset all progress</button>'+
+      '</div>'+
+      '<h6 class="section-label">About</h6>'+
+      '<p class="about-text">Marvel for Dummies is a companion for rewatching the MCU in story order — every film, series, special and short, grouped by era. Your progress, ratings and theories are saved on this device.</p>'+
+    '</div>'
+  );
+}
+
+/* ---------- shell ---------- */
+var TABS = [
+  {id:'timeline', label:'Timeline'},
+  {id:'home', label:'Progress'},
+  {id:'theories', label:'Theories'},
+  {id:'settings', label:'Settings'}
+];
+function renderTabbar(s){
+  return '<nav class="tabbar">'+TABS.map(function(t){
+    return '<button type="button" class="tab-btn '+(s.tab===t.id?'is-on':'')+'" data-act="setTab" data-id="'+t.id+'">'+ICONS[t.id]+'<span>'+t.label+'</span></button>';
+  }).join('')+'</nav>';
+}
+function template(s){
+  var header, content;
+  if(s.tab==='timeline'){ header = renderTimelineHeader(s); content = renderTimeline(s); }
+  else if(s.tab==='home'){ header = renderHomeHeader(); content = renderHome(s); }
+  else if(s.tab==='theories'){ header = renderTheoriesHeader(s); content = renderTheories(s); }
+  else { header = renderSettingsHeader(); content = renderSettings(s); }
+  return (
+    '<header class="app-header'+(s.scrolled?' is-collapsed':'')+'"><div class="tab-panel">'+header+'</div></header>'+
+    '<main class="app-content">'+content+'</main>'+
+    renderTabbar(s)
+  );
+}
+
+/* ---------- render loop with focus + scroll preservation ---------- */
+var root = document.getElementById('app');
+function render(){
+  document.documentElement.setAttribute('data-app-theme', state.theme);
+  var active = document.activeElement;
+  var focusId = (active && active.dataset) ? active.dataset.focusId : null;
+  var selStart = null, selEnd = null;
+  if(active && typeof active.selectionStart === 'number'){ selStart = active.selectionStart; selEnd = active.selectionEnd; }
+  var oldContent = root.querySelector('.app-content');
+  var oldScrollTop = oldContent ? oldContent.scrollTop : 0;
+  root.innerHTML = template(state);
+  var newContent = root.querySelector('.app-content');
+  if(newContent) newContent.scrollTop = oldScrollTop;
+  if(focusId){
+    var el = root.querySelector('[data-focus-id="'+focusId+'"]');
+    if(el){
+      el.focus({preventScroll:true});
+      if(selStart!=null && el.setSelectionRange){ try{ el.setSelectionRange(selStart, selEnd); }catch(e){} }
+    }
+  }
+}
+
+/* ---------- event delegation ---------- */
+root.addEventListener('click', function(e){
+  var el = e.target.closest('[data-act]');
+  if(!el) return;
+  var act = el.dataset.act, id = el.dataset.id;
+  switch(act){
+    case 'stop': break;
+    case 'setTab': setTab(id); break;
+    case 'toggleFilters': toggleFilters(); break;
+    case 'focusRoadmapItem': focusRoadmapItem(id); break;
+    case 'toggleEra': toggleEra(id); break;
+    case 'toggleWatched': toggleWatched(id); break;
+    case 'toggleFavorite': toggleFavorite(id); break;
+    case 'setRating': setRating(id, Number(el.dataset.n)); break;
+    case 'toggleTheoryOpen': toggleTheoryOpen(id); break;
+    case 'vote': vote(id, el.dataset.type); break;
+    case 'deleteComment': deleteComment(id, Number(el.dataset.idx)); break;
+    case 'deleteTheory': deleteTheory(id); break;
+    case 'toggleNewTheoryForm': toggleNewTheoryForm(); break;
+    case 'submitTheory': submitTheory(); break;
+    case 'addComment': addComment(id); break;
+    case 'toggleNotif': toggleNotif(); break;
+    case 'setTheme': setTheme(el.dataset.theme); break;
+    case 'resetProgress':
+      if(window.confirm('Reset all watched progress and ratings? This can’t be undone.')) resetProgress();
+      break;
+  }
+});
+root.addEventListener('change', function(e){
+  var t = e.target;
+  if(t.name === 'viewmode'){ setViewMode(t.dataset.value); }
+  else if(t.name === 'section'){ setSection(t.dataset.value); }
+  else if(t.name === 'theorysort'){ setTheorySort(t.dataset.value); }
+  else if(t.name === 'layout'){ setLayout(t.dataset.value); }
+});
+root.addEventListener('input', function(e){
+  var t = e.target;
+  var bind = t.dataset.bind;
+  if(!bind) return;
+  if(bind === 'search'){ setSearch(t.value); }
+  else if(bind === 'theorySearch'){ setTheorySearch(t.value); }
+  else if(bind === 'theoryTitle'){ setNewTheoryTitle(t.value); }
+  else if(bind === 'theoryBody'){ setNewTheoryBody(t.value); }
+  else if(bind.indexOf('comment:') === 0){ setCommentDraft(bind.slice(8), t.value); }
+});
+/* 'scroll' doesn't bubble, so listen on the capture phase to catch it from .app-content */
+root.addEventListener('scroll', function(e){
+  if(!e.target.classList || !e.target.classList.contains('app-content')) return;
+  var st = e.target.scrollTop;
+  if(st > 24 && !state.scrolled){ state.scrolled = true; commit(); }
+  else if(st <= 2 && state.scrolled){ state.scrolled = false; commit(); }
+}, true);
+
+render();
+showSplash();
+
+/* ---------- opening transition ---------- */
+function showSplash(){
+  var reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduced) return;
+  var el = document.createElement('div');
+  el.className = 'app-splash';
+  el.setAttribute('aria-hidden', 'true');
+  el.innerHTML =
+    '<div class="app-splash-inner">'+
+      '<div class="app-splash-flash"></div>'+
+      '<div class="app-splash-word">Marvel</div>'+
+      '<div class="app-splash-kicker">For Dummies</div>'+
+    '</div>';
+  document.body.appendChild(el);
+  setTimeout(function(){
+    el.classList.add('is-leaving');
+    setTimeout(function(){ el.remove(); }, 500);
+  }, 1600);
+}
+</script>
