@@ -1077,10 +1077,9 @@ function renderHome(s){
   }).filter(Boolean);
   var favoritesBlock = favorites.length
     ? '<button type="button" class="filters-toggle" style="margin-bottom:10px" data-act="toggleStoryboard">'+(s.showStoryboard?'Hide storyboard ▾':'View as storyboard ▸')+'</button>'+
-      (s.showStoryboard ? renderStoryboard(s) : '')+
-      favorites.map(function(f){
+      (s.showStoryboard ? renderStoryboard(s) : favorites.map(function(f){
         return '<div class="recent-row favorite-row"><span><span class="tag-type tag-'+TYPE_TAG[f.type].replace('tag-','')+'" style="margin-right:8px">'+TYPE_LABEL[f.type]+'</span>'+esc(f.title)+'</span><span class="recent-year">'+f.year+'</span></div>';
-      }).join('')
+      }).join(''))
     : '<p class="empty-note">No favorites yet — tap the heart on any title in the Timeline tab.</p>';
 
   var upcoming = ALL_ITEMS.filter(function(it){ return it.upcoming; });
