@@ -538,7 +538,7 @@ function defaultState(){
     theoryOpen:{}, upvotes:{}, downvotes:{}, myVote:{}, comments:{}, commentDrafts:{},
     userTheories:[], showNewTheory:false, newTheoryTitle:'', newTheoryBody:'',
     theorySearch:'', theorySort:'new', scrolled:false,
-    cookieNoticeDismissed:false, showLegal:false,
+    cookieNoticeDismissed:false, showLegal:false, fanNoticeDismissed:false,
     user:null, authPrompt:false, remoteComments:{}, showStoryboard:false,
     displayName:'', displayNameDraft:'', toastMsg:null
   };
@@ -627,6 +627,7 @@ function toggleFavorite(id){
 }
 function toggleNotif(){ state.notif = !state.notif; commit(); }
 function dismissCookieNotice(){ state.cookieNoticeDismissed = true; commit(); }
+function dismissFanNotice(){ state.fanNoticeDismissed = true; commit(); }
 function showLegal(){ state.showLegal = true; commit(); }
 function closeLegal(){ state.showLegal = false; commit(); }
 function setLayout(v){ state.layout = v; state.roadmapFocus = null; commit(); }
@@ -1178,7 +1179,8 @@ function template(s){
     cookieBanner+
     (s.showLegal ? renderLegalModal() : '')+
     (s.authPrompt ? renderAuthModal() : '')+
-    (s.toastMsg ? '<div class="toast" data-act="dismissToast">'+esc(s.toastMsg)+'</div>' : '')
+    (s.toastMsg ? '<div class="toast" data-act="dismissToast">'+esc(s.toastMsg)+'</div>' : '')+
+    (!s.fanNoticeDismissed ? renderFanNoticeModal() : '')
   );
 }
 function renderAuthModal(){
@@ -1189,6 +1191,18 @@ function renderAuthModal(){
         '<p>Voting, rating, favoriting and posting theories or comments need an account, so everyone sees the same shared list instead of a copy stuck on one phone.</p>'+
         '<button type="button" class="btn btn-primary" data-act="signIn" style="margin-bottom:10px">Continue with Google</button>'+
         '<button type="button" class="zoom-out-link" data-act="dismissAuthPrompt">Not now</button>'+
+      '</div>'+
+    '</div>'
+  );
+}
+function renderFanNoticeModal(){
+  return (
+    '<div class="legal-modal" data-act="dismissFanNotice">'+
+      '<div class="legal-card" data-act="stop">'+
+        '<h3>Just so you know</h3>'+
+        '<p><strong>Marvel for Dummies is an unofficial fan project</strong> — built by a fan, for fans. It isn\'t made, endorsed, or affiliated with Marvel, Disney, or any of the studios behind these movies and shows.</p>'+
+        '<p>All character names, titles, artwork and likenesses belong to their respective rights holders. This app just helps you track and talk about them.</p>'+
+        '<button type="button" class="btn btn-primary" data-act="dismissFanNotice">Got it</button>'+
       '</div>'+
     '</div>'
   );
@@ -1243,6 +1257,7 @@ root.addEventListener('click', function(e){
     case 'signIn': signInWithGoogle(); break;
     case 'signOut': signOut(); break;
     case 'dismissAuthPrompt': dismissAuthPrompt(); break;
+    case 'dismissFanNotice': dismissFanNotice(); break;
     case 'setTab': setTab(id); break;
     case 'toggleFilters': toggleFilters(); break;
     case 'focusRoadmapItem': focusRoadmapItem(id); break;
