@@ -12,9 +12,9 @@
     var raw = localStorage.getItem('mcuRewatch.v1');
     var theme = null;
     if(raw){ var parsed = JSON.parse(raw); theme = parsed && parsed.theme; }
-    if(!theme){ theme = (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) ? 'comic' : 'broadsheet'; }
+    if(!theme){ theme = 'ironman'; }
     document.documentElement.setAttribute('data-app-theme', theme);
-  }catch(e){ document.documentElement.setAttribute('data-app-theme','comic'); }
+  }catch(e){ document.documentElement.setAttribute('data-app-theme','ironman'); }
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -73,19 +73,84 @@
   --tag-special-bg:rgba(255,255,255,.10); --tag-special-fg:var(--text-dim);
   --tag-short-fg:var(--accent);
 }
-:root[data-app-theme="broadsheet"]{
-  --bg:#f1efe8; --bg-deep:#dedad0; --surface:#ffffff; --surface-2:#e9e5db;
-  --text:#221f1a; --text-dim:rgba(34,31,26,.64); --text-faint:rgba(34,31,26,.42);
-  --accent:#0088b0; --accent-ink:#ffffff; --accent-soft:rgba(0,136,176,.12);
-  --heat:#d6006c;
-  --divider:rgba(34,31,26,.15);
-  --danger-text:#9c1c1c; --danger-border:rgba(156,28,28,.35);
-  --chip-radius:3px; --card-radius:2px;
-  --halftone-a:.06;
-  --shadow:0 16px 40px rgba(34,31,26,.16);
+/* Spider-Man — dark blue and red */
+:root[data-app-theme="spiderman"]{
+  --bg:#0b1440; --bg-deep:#060c2c; --surface:#12205c; --surface-2:#0e1a4d;
+  --text:#f2f4ff; --text-dim:rgba(242,244,255,.64); --text-faint:rgba(242,244,255,.4);
+  --accent:#e8242a; --accent-ink:#ffffff; --accent-soft:rgba(232,36,42,.2);
+  --heat:#ff5a3c;
+  --divider:rgba(242,244,255,.16);
+  --danger-text:#ffb9b9; --danger-border:rgba(255,185,185,.45);
+  --chip-radius:999px; --card-radius:3px;
+  --halftone-a:.14;
+  --shadow:0 20px 50px rgba(0,0,0,.4);
   --tag-movie-bg:var(--accent-soft); --tag-movie-fg:var(--accent);
-  --tag-series-bg:rgba(214,0,108,.12); --tag-series-fg:#a8005a;
-  --tag-special-bg:var(--surface-2); --tag-special-fg:var(--text-dim);
+  --tag-series-bg:rgba(255,255,255,.16); --tag-series-fg:#fff;
+  --tag-special-bg:rgba(255,255,255,.10); --tag-special-fg:var(--text-dim);
+  --tag-short-fg:var(--accent);
+}
+/* Captain America — red, white and blue */
+:root[data-app-theme="cap"]{
+  --bg:#0a3161; --bg-deep:#062044; --surface:#123a72; --surface-2:#0d2d5c;
+  --text:#ffffff; --text-dim:rgba(255,255,255,.68); --text-faint:rgba(255,255,255,.44);
+  --accent:#b31942; --accent-ink:#ffffff; --accent-soft:rgba(179,25,66,.22);
+  --heat:#ffffff;
+  --divider:rgba(255,255,255,.18);
+  --danger-text:#ffb9b9; --danger-border:rgba(255,185,185,.45);
+  --chip-radius:999px; --card-radius:3px;
+  --halftone-a:.14;
+  --shadow:0 20px 50px rgba(0,0,0,.4);
+  --tag-movie-bg:var(--accent-soft); --tag-movie-fg:#ff5c85;
+  --tag-series-bg:rgba(255,255,255,.16); --tag-series-fg:#fff;
+  --tag-special-bg:rgba(255,255,255,.10); --tag-special-fg:var(--text-dim);
+  --tag-short-fg:#ff5c85;
+}
+/* Thor — red, blue, black and gold */
+:root[data-app-theme="thor"]{
+  --bg:#151018; --bg-deep:#0a070c; --surface:#211a26; --surface-2:#19141d;
+  --text:#f5efe0; --text-dim:rgba(245,239,224,.66); --text-faint:rgba(245,239,224,.42);
+  --accent:#d9a441; --accent-ink:#1a1200; --accent-soft:rgba(217,164,65,.2);
+  --heat:#c8102e;
+  --divider:rgba(245,239,224,.16);
+  --danger-text:#ffb9b9; --danger-border:rgba(255,185,185,.45);
+  --chip-radius:999px; --card-radius:3px;
+  --halftone-a:.14;
+  --shadow:0 20px 50px rgba(0,0,0,.5);
+  --tag-movie-bg:var(--accent-soft); --tag-movie-fg:var(--accent);
+  --tag-series-bg:rgba(91,124,214,.22); --tag-series-fg:#8fa8f2;
+  --tag-special-bg:rgba(245,239,224,.10); --tag-special-fg:var(--text-dim);
+  --tag-short-fg:var(--accent);
+}
+/* Black Widow — red and black */
+:root[data-app-theme="widow"]{
+  --bg:#141414; --bg-deep:#0a0a0a; --surface:#1e1e1e; --surface-2:#181818;
+  --text:#f5f0ee; --text-dim:rgba(245,240,238,.64); --text-faint:rgba(245,240,238,.4);
+  --accent:#d0182b; --accent-ink:#ffffff; --accent-soft:rgba(208,24,43,.2);
+  --heat:#ff3b30;
+  --divider:rgba(245,240,238,.16);
+  --danger-text:#ffb9b9; --danger-border:rgba(255,185,185,.45);
+  --chip-radius:999px; --card-radius:3px;
+  --halftone-a:.14;
+  --shadow:0 20px 50px rgba(0,0,0,.5);
+  --tag-movie-bg:var(--accent-soft); --tag-movie-fg:var(--accent);
+  --tag-series-bg:rgba(255,255,255,.14); --tag-series-fg:#fff;
+  --tag-special-bg:rgba(255,255,255,.08); --tag-special-fg:var(--text-dim);
+  --tag-short-fg:var(--accent);
+}
+/* Hulk — green and purple */
+:root[data-app-theme="hulk"]{
+  --bg:#16241a; --bg-deep:#0c1710; --surface:#20321f; --surface-2:#182818;
+  --text:#eef7ec; --text-dim:rgba(238,247,236,.66); --text-faint:rgba(238,247,236,.42);
+  --accent:#6bbf59; --accent-ink:#0f1f0d; --accent-soft:rgba(107,191,89,.2);
+  --heat:#9b5de5;
+  --divider:rgba(238,247,236,.16);
+  --danger-text:#ffb9b9; --danger-border:rgba(255,185,185,.45);
+  --chip-radius:999px; --card-radius:3px;
+  --halftone-a:.14;
+  --shadow:0 20px 50px rgba(0,0,0,.5);
+  --tag-movie-bg:var(--accent-soft); --tag-movie-fg:var(--accent);
+  --tag-series-bg:rgba(155,93,229,.22); --tag-series-fg:#c9a3f5;
+  --tag-special-bg:rgba(238,247,236,.10); --tag-special-fg:var(--text-dim);
   --tag-short-fg:var(--accent);
 }
 
@@ -317,8 +382,8 @@ button,input,textarea{font-family:inherit;color:inherit}
 .switch-knob{ width:19px; height:19px; border-radius:50%; background:var(--bg); box-shadow:0 1px 3px rgba(0,0,0,.3); transition:transform .15s ease; }
 .switch.is-on .switch-knob{ transform:translateX(19px); }
 .theme-row{ padding:14px 0; border-top:1px solid var(--divider); }
-.theme-options{ display:flex; gap:10px; margin-top:10px; }
-.theme-swatch{ flex:1; padding:12px; border-radius:var(--card-radius); border:1.5px solid var(--divider); cursor:pointer; text-align:left; background:none; color:inherit; font:inherit; }
+.theme-options{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px; }
+.theme-swatch{ padding:12px; border-radius:var(--card-radius); border:1.5px solid var(--divider); cursor:pointer; text-align:left; background:none; color:inherit; font:inherit; }
 .theme-swatch.is-on{ border-color:var(--accent); }
 .swatch-dots{ display:flex; gap:5px; margin-bottom:8px; }
 .swatch-dot{ width:14px; height:14px; border-radius:50%; }
@@ -360,6 +425,15 @@ button,input,textarea{font-family:inherit;color:inherit}
 __DATA_JS__
 
 function fmtMin(m){ return m>=60 ? Math.round(m/60)+' hr' : m+' min'; }
+
+var THEMES = [
+  {id:'ironman', name:'Iron Man', desc:'Red & gold, high contrast', dots:['#a01623','#ffcb05']},
+  {id:'spiderman', name:'Spider-Man', desc:'Dark blue & red', dots:['#0b1440','#e8242a']},
+  {id:'cap', name:'Captain America', desc:'Red, white & blue', dots:['#0a3161','#b31942','#ffffff']},
+  {id:'thor', name:'Thor', desc:'Red, blue, black & gold', dots:['#151018','#d9a441','#c8102e']},
+  {id:'widow', name:'Black Widow', desc:'Red & black', dots:['#141414','#d0182b']},
+  {id:'hulk', name:'Hulk', desc:'Green & purple', dots:['#16241a','#6bbf59','#9b5de5']}
+];
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 
 /* ---------- accounts (Supabase) ---------- */
@@ -456,12 +530,11 @@ function initAuth(){
 
 var STORAGE_KEY = 'mcuRewatch.v1';
 function defaultState(){
-  var prefersDark = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches;
   return {
     tab:'timeline', section:'connected', viewMode:'chrono', search:'', filtersOpen:true,
     expandedEra:'origins', watched:{}, ratings:{}, watchedOrder:[],
     favorites:{}, favoriteOrder:[], layout:'list', roadmapFocus:null,
-    notif:true, theme: prefersDark ? 'comic' : 'broadsheet',
+    notif:true, theme:'ironman',
     theoryOpen:{}, upvotes:{}, downvotes:{}, myVote:{}, comments:{}, commentDrafts:{},
     userTheories:[], showNewTheory:false, newTheoryTitle:'', newTheoryBody:'',
     theorySearch:'', theorySort:'new', scrolled:false,
@@ -1050,15 +1123,14 @@ function renderSettings(s){
           '<label style="padding:6px 14px"><input type="radio" name="layout" data-value="roadmap" '+(s.layout==='roadmap'?'checked':'')+'>Roadmap</label>'+
         '</div></div>'+
       '<div class="theme-row"><span class="pref-label">Appearance</span>'+
+        '<p class="caption" style="margin:2px 0 8px">Pick a hero palette. (Names are placeholders — we\'ll revisit these.)</p>'+
         '<div class="theme-options">'+
-          '<button type="button" class="theme-swatch '+(s.theme==='comic'?'is-on':'')+'" data-act="setTheme" data-theme="comic">'+
-            '<span class="swatch-dots"><span class="swatch-dot" style="background:#a01623"></span><span class="swatch-dot" style="background:#ffcb05"></span></span>'+
-            '<span class="swatch-name">Comic Book</span><span class="swatch-desc">Red &amp; gold, high contrast</span>'+
-          '</button>'+
-          '<button type="button" class="theme-swatch '+(s.theme==='broadsheet'?'is-on':'')+'" data-act="setTheme" data-theme="broadsheet">'+
-            '<span class="swatch-dots"><span class="swatch-dot" style="background:#f1efe8;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)"></span><span class="swatch-dot" style="background:#0088b0"></span></span>'+
-            '<span class="swatch-name">Broadsheet</span><span class="swatch-desc">Newsprint, light &amp; airy</span>'+
-          '</button>'+
+          THEMES.map(function(th){
+            return '<button type="button" class="theme-swatch '+(s.theme===th.id?'is-on':'')+'" data-act="setTheme" data-theme="'+th.id+'">'+
+              '<span class="swatch-dots">'+th.dots.map(function(c){ return '<span class="swatch-dot" style="background:'+c+'"></span>'; }).join('')+'</span>'+
+              '<span class="swatch-name">'+esc(th.name)+'</span><span class="swatch-desc">'+esc(th.desc)+'</span>'+
+            '</button>';
+          }).join('')+
         '</div>'+
       '</div>'+
       '<h6 class="section-label">Data</h6>'+
@@ -1067,6 +1139,7 @@ function renderSettings(s){
       '</div>'+
       '<h6 class="section-label">About</h6>'+
       '<p class="about-text">Marvel for Dummies is a companion for rewatching the MCU in story order — every film, series, special and short, grouped by era. Your progress, ratings and theories are saved on this device.</p>'+
+      '<p class="about-text" style="opacity:.7;font-size:11.5px">All character names, titles and likenesses belong to Marvel/Disney and their respective rights holders. This is an unofficial, non-commercial fan project.</p>'+
       '<button type="button" class="filters-toggle" style="margin:2px 0 12px" data-act="showLegal">Privacy &amp; Legal ▸</button>'+
     '</div>'
   );
