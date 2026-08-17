@@ -375,6 +375,10 @@ function signInWithGoogle(){
 }
 function signOut(){
   if(!sb) return;
+  state.user = null;
+  state.displayName = '';
+  state.favorites = {}; state.favoriteOrder = []; state.ratings = {}; state.myVote = {};
+  commit();
   sb.auth.signOut();
 }
 function requireAuth(){
@@ -1219,6 +1223,17 @@ root.addEventListener('scroll', function(e){
 render();
 showSplash();
 initAuth();
+window.addEventListener('pageshow', function(e){
+  if(e.persisted && sb){
+    sb.auth.getSession().then(function(res){
+      var nextUser = res.data.session ? res.data.session.user : null;
+      if((state.user && nextUser && state.user.id !== nextUser.id) || (!!state.user) !== (!!nextUser)){
+        state.user = nextUser;
+        loadRemoteData();
+      }
+    });
+  }
+});
 
 /* ---------- opening transition ---------- */
 function showSplash(){
