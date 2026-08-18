@@ -771,7 +771,7 @@ function defaultState(){
 function loadState(){
   try{
     var raw = localStorage.getItem(STORAGE_KEY);
-    if(raw){ var merged = Object.assign(defaultState(), JSON.parse(raw)); merged.toastMsg = null; merged.fanNoticeDismissed = false; return merged; }
+    if(raw){ var merged = Object.assign(defaultState(), JSON.parse(raw)); merged.toastMsg = null; merged.fanNoticeDismissed = false; merged.cookieNoticeDismissed = false; return merged; }
   }catch(e){}
   return defaultState();
 }
