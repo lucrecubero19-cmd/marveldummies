@@ -628,6 +628,8 @@ function toggleWatched(id){
   if(!was) state.watchedOrder.unshift(id);
   commit();
 }
+var ADMIN_EMAIL = 'lucrecubero19@gmail.com';
+function isAdmin(){ return !!(state.user && state.user.email === ADMIN_EMAIL); }
 function displayNameFor(){
   if(!state.user) return 'Fan';
   if(state.displayName) return state.displayName;
@@ -1172,13 +1174,14 @@ function renderTheories(s){
     for(var n=1;n<=4;n++){ heatDots += '<span class="heat-dot '+(n<=t.heat?'is-on':'')+'"></span>'; }
     var mineTag = t.mine
       ? '<span class="tag-mine">YOURS</span><span class="delete-link" data-act="deleteTheory" data-id="'+esc(t.id)+'">✕ Delete</span>'
-      : '';
+      : (isAdmin() ? '<span class="delete-link" data-act="deleteTheory" data-id="'+esc(t.id)+'">✕ Remove</span>' : '');
     var openBlock = '';
     if(open){
       var comments = (s.remoteComments[t.id]||[]);
       var commentsHtml = comments.map(function(c, idx){
         var mine = s.user && c.user_id === s.user.id;
-        return '<div class="comment-row"><span><strong>'+esc(c.user_name||'Fan')+':</strong> '+esc(c.body)+'</span>'+(mine?'<span class="delete-link" data-act="deleteComment" data-id="'+esc(t.id)+'" data-idx="'+idx+'">✕</span>':'')+'</div>';
+        var canDelete = mine || isAdmin();
+        return '<div class="comment-row"><span><strong>'+esc(c.user_name||'Fan')+':</strong> '+esc(c.body)+'</span>'+(canDelete?'<span class="delete-link" data-act="deleteComment" data-id="'+esc(t.id)+'" data-idx="'+idx+'">✕</span>':'')+'</div>';
       }).join('') || '<p class="empty-note" style="padding:8px 0">No comments yet — be the first.</p>';
       var draft = s.commentDrafts[t.id] || '';
       var agree = s.myVote[t.id] === 'agree', disagree = s.myVote[t.id] === 'disagree';
