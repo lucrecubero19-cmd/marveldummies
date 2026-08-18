@@ -764,6 +764,7 @@ function defaultState(){
     userTheories:[], showNewTheory:false, newTheoryTitle:'', newTheoryBody:'',
     theorySearch:'', theorySort:'new', scrolled:false,
     cookieNoticeDismissed:false, showLegal:false, fanNoticeDismissed:false,
+    showGuide:false, guideSeen:false,
     user:null, authPrompt:false, remoteComments:{}, showStoryboard:false,
     displayName:'', displayNameDraft:'', toastMsg:null
   };
@@ -854,6 +855,8 @@ function toggleNotif(){ state.notif = !state.notif; commit(); }
 function dismissCookieNotice(){ state.cookieNoticeDismissed = true; commit(); }
 function dismissFanNotice(){ state.fanNoticeDismissed = true; commit(); }
 function showLegal(){ state.showLegal = true; commit(); }
+function showGuide(){ state.showGuide = true; state.guideSeen = true; commit(); }
+function closeGuide(){ state.showGuide = false; commit(); }
 function closeLegal(){ state.showLegal = false; commit(); }
 function setLayout(v){ state.layout = v; state.roadmapFocus = null; commit(); }
 function focusRoadmapItem(id){
@@ -1368,7 +1371,8 @@ function renderSettings(s){
       '<h6 class="section-label">About</h6>'+
       '<p class="about-text">Marvel for Dummies is a companion for rewatching the MCU in story order — every film, series, special and short, grouped by era. Your progress, ratings and theories are saved on this device.</p>'+
       '<p class="about-text" style="opacity:.7;font-size:11.5px">All character names, titles and likenesses belong to Marvel/Disney and their respective rights holders. This is an unofficial, non-commercial fan project.</p>'+
-      '<button type="button" class="filters-toggle" style="margin:2px 0 12px" data-act="showLegal">Privacy &amp; Legal ▸</button>'+
+      '<button type="button" class="filters-toggle" style="margin:2px 0 8px;display:block" data-act="showGuide">How to use this app ▸</button>'+
+      '<button type="button" class="filters-toggle" style="margin:2px 0 12px;display:block" data-act="showLegal">Privacy &amp; Legal ▸</button>'+
     '</div>'
   );
 }
@@ -1406,6 +1410,7 @@ function template(s){
     renderTabbar(s)+
     cookieBanner+
     (s.showLegal ? renderLegalModal(s) : '')+
+    (s.showGuide ? renderGuideModal() : '')+
     (s.authPrompt ? renderAuthModal() : '')+
     (s.toastMsg ? '<div class="toast" data-act="dismissToast">'+esc(s.toastMsg)+'</div>' : '')+
     (!s.fanNoticeDismissed ? renderFanNoticeModal() : '')
@@ -1432,6 +1437,36 @@ function renderFanNoticeModal(){
         '<p><strong>Marvel for Dummies is an unofficial fan project</strong> — built by a fan, for fans. It isn\'t made, endorsed, or affiliated with Marvel, Disney, or any of the studios behind these movies and shows.</p>'+
         '<p>All character names, titles, artwork and likenesses belong to their respective rights holders. This app just helps you track and talk about them.</p>'+
         '<button type="button" class="btn btn-primary" data-act="dismissFanNotice">Got it</button>'+
+      '</div>'+
+    '</div>'
+  );
+}
+function renderGuideModal(){
+  return (
+    '<div class="legal-modal" data-act="closeGuide">'+
+      '<div class="legal-card" data-act="stop">'+
+        '<h3>How to use this app</h3>'+
+
+        '<h4 class="legal-subhead">Timeline</h4>'+
+        '<p>Tap <strong>Filters</strong> to switch between <strong>Story Order</strong> (in-universe chronology), <strong>Release Order</strong> (how it actually came out), or the <strong>Doomsday Path</strong> (a curated shortcut to the next big event). Search titles, or switch Connected ↔ Other Adaptations.</p>'+
+        '<p>Tap the circle next to a title to mark it watched, the heart to favorite it, and the title itself for a synopsis and scores.</p>'+
+
+        '<h4 class="legal-subhead">Roadmap layout</h4>'+
+        '<p>In Settings → Timeline layout, switch to <strong>Roadmap</strong> for a visual path view — tap any era to zoom into it, tap any title to zoom into details, and look for the 📍 marker showing where you left off.</p>'+
+
+        '<h4 class="legal-subhead">Progress</h4>'+
+        '<p>See your overall watch percentage, progress by era, and your favorites list. Favorited something? Tap <strong>View as storyboard</strong> to see your own picks laid out as a numbered personal path.</p>'+
+
+        '<h4 class="legal-subhead">Theories</h4>'+
+        '<p>Browse fan theories, sort by newest or most buzzy, and tap one open to read, vote Agree/Disagree, or leave a comment. Signing in lets you post your own theory too — everyone signed in sees the same shared comments and votes.</p>'+
+
+        '<h4 class="legal-subhead">Accounts</h4>'+
+        '<p>Sign in with Google (Settings, or when prompted) to vote, rate, favorite, or post — this keeps your activity synced across devices and lets others see your comments. You can set a custom display name in Settings so you\'re not stuck with your Google name.</p>'+
+
+        '<h4 class="legal-subhead">Appearance</h4>'+
+        '<p>Pick a hero color palette in Settings → Appearance — six to choose from, each with its own colors.</p>'+
+
+        '<button type="button" class="zoom-out-link" data-act="closeGuide">Close</button>'+
       '</div>'+
     '</div>'
   );
@@ -1534,6 +1569,8 @@ root.addEventListener('click', function(e){
     case 'dismissCookieNotice': dismissCookieNotice(); break;
     case 'showLegal': showLegal(); break;
     case 'closeLegal': closeLegal(); break;
+    case 'showGuide': showGuide(); break;
+    case 'closeGuide': closeGuide(); break;
     case 'signIn': signInWithGoogle(); break;
     case 'signOut': signOut(); break;
     case 'dismissAuthPrompt': dismissAuthPrompt(); break;
