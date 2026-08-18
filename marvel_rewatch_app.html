@@ -123,11 +123,11 @@
 }
 /* Black Widow — red and black */
 :root[data-app-theme="widow"]{
-  --bg:#141414; --bg-deep:#0a0a0a; --surface:#1e1e1e; --surface-2:#181818;
+  --bg:#101010; --bg-deep:#0a0a0a; --surface:#1a0d0d; --surface-2:#150a0a;
   --text:#f5f0ee; --text-dim:rgba(245,240,238,.64); --text-faint:rgba(245,240,238,.4);
-  --accent:#d0182b; --accent-ink:#ffffff; --accent-soft:rgba(208,24,43,.2);
-  --heat:#ff3b30;
-  --divider:rgba(245,240,238,.16);
+  --accent:#ff0000; --accent-ink:#ffffff; --accent-soft:rgba(255,0,0,.2);
+  --heat:#ff0000;
+  --divider:#300000;
   --danger-text:#ffb9b9; --danger-border:rgba(255,185,185,.45);
   --chip-radius:999px; --card-radius:3px;
   --halftone-a:.14;
@@ -634,7 +634,7 @@ var THEMES = [
   {id:'spiderman', name:'Friendly Neighbour', desc:'Dark blue & red', dots:['#0b1440','#e8242a']},
   {id:'cap', name:"America's Ass", desc:'Red, white & blue', dots:['#0a3161','#b31942','#ffffff']},
   {id:'thor', name:'Goldilocks', desc:'Red, blue, grey & gold', dots:['#3a3a40','#d9a441','#c8102e']},
-  {id:'widow', name:"SHIELD's Best Agent", desc:'Red & black', dots:['#141414','#d0182b']},
+  {id:'widow', name:"SHIELD's Best Agent", desc:'Red & black', dots:['#101010','#ff0000']},
   {id:'hulk', name:'Big Guy', desc:'Green & purple', dots:['#35B02E','#7C24A0']}
 ];
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
