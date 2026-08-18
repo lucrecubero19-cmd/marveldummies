@@ -932,8 +932,15 @@ function positionTourOverlay(){
   var tipTop = placeBelow ? (rect.bottom + 14) : Math.max(12, rect.top - 14 - 140);
   var tipLeft = Math.min(Math.max(12, rect.left + rect.width/2 - tipWidth/2), vw - tipWidth - 12);
   var arrowLeft = Math.max(16, Math.min(tipWidth-16, (rect.left + rect.width/2) - tipLeft));
+  var cx = rect.left + rect.width/2, cy = rect.top + rect.height/2;
+  var isIcon = rect.width < 44 && rect.height < 44;
+  var pad = isIcon ? 12 : 6;
+  var ringSide = isIcon ? Math.max(rect.width, rect.height) + pad*2 : null;
+  var ringW = isIcon ? ringSide : rect.width + pad*2;
+  var ringH = isIcon ? ringSide : rect.height + pad*2;
+  var ringRadius = isIcon ? '50%' : '14px';
   overlay.innerHTML =
-    '<div class="tour-ring" style="left:'+(rect.left-6)+'px;top:'+(rect.top-6)+'px;width:'+(rect.width+12)+'px;height:'+(rect.height+12)+'px;"></div>'+
+    '<div class="tour-ring" style="left:'+(cx-ringW/2)+'px;top:'+(cy-ringH/2)+'px;width:'+ringW+'px;height:'+ringH+'px;border-radius:'+ringRadius+';"></div>'+
     '<div class="tour-tip" style="top:'+tipTop+'px;left:'+tipLeft+'px;width:'+tipWidth+'px;">'+
       (placeBelow ? '<div class="tour-tip-arrow tour-tip-arrow-up" style="left:'+arrowLeft+'px"></div>' : '')+
       '<div class="tour-step-count">Step '+(state.tourStep+1)+' of '+TOUR_STEPS.length+'</div>'+
