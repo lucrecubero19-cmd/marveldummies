@@ -1027,7 +1027,7 @@ function renderRoadmapEra(era, s){
 function renderTimeline(s){
   var eras = filteredEras(s);
   if(!eras.length){
-    return '<div class="tab-panel"><p class="empty-note">No titles match &ldquo;'+esc(s.search)+'&rdquo;.</p></div>';
+    return '<div class="tab-panel"><p class="empty-note">Nothing turns up for &ldquo;'+esc(s.search)+'&rdquo; — even Nick Fury couldn\'t find that one.</p></div>';
   }
   if(s.layout === 'roadmap'){
     var flatIds = [];
@@ -1102,7 +1102,7 @@ function renderHome(s){
 
   var recentBlock = recent.length
     ? recent.map(function(r){ return '<div class="recent-row"><span>'+esc(r.title)+'</span><span class="recent-year">'+r.year+'</span></div>'; }).join('')
-    : '<p class="empty-note">Nothing watched yet — check off a title in the Timeline tab.</p>';
+    : '<p class="empty-note">The rewatch hasn\'t started. Head to Timeline and check off your first title.</p>';
 
   var favorites = s.favoriteOrder.map(function(id){
     var it = ALL_ITEMS.find(function(x){ return x.id===id; });
@@ -1113,7 +1113,7 @@ function renderHome(s){
       (s.showStoryboard ? renderStoryboard(s) : favorites.map(function(f){
         return '<div class="recent-row favorite-row"><span><span class="tag-type tag-'+TYPE_TAG[f.type].replace('tag-','')+'" style="margin-right:8px">'+TYPE_LABEL[f.type]+'</span>'+esc(f.title)+'</span><span class="recent-year">'+f.year+'</span></div>';
       }).join(''))
-    : '<p class="empty-note">No favorites yet — tap the heart on any title in the Timeline tab.</p>';
+    : '<p class="empty-note">Nothing favorited yet. Every hero has one that hits different — tap the heart on yours in Timeline.</p>';
 
   var upcoming = ALL_ITEMS.filter(function(it){ return it.upcoming; });
   var nextBlock = upcoming.length
@@ -1182,7 +1182,7 @@ function renderTheories(s){
         var mine = s.user && c.user_id === s.user.id;
         var canDelete = mine || isAdmin();
         return '<div class="comment-row"><span><strong>'+esc(c.user_name||'Fan')+':</strong> '+esc(c.body)+'</span>'+(canDelete?'<span class="delete-link" data-act="deleteComment" data-id="'+esc(t.id)+'" data-idx="'+idx+'">✕</span>':'')+'</div>';
-      }).join('') || '<p class="empty-note" style="padding:8px 0">No comments yet — be the first.</p>';
+      }).join('') || '<p class="empty-note" style="padding:8px 0">Quiet in here. Say something first — even Groot had more to say than "I am Groot."</p>';
       var draft = s.commentDrafts[t.id] || '';
       var agree = s.myVote[t.id] === 'agree', disagree = s.myVote[t.id] === 'disagree';
       var sourceLine = t.source ? '<p class="theory-source">via '+esc(t.source)+'</p>' : '';
@@ -1213,7 +1213,7 @@ function renderTheories(s){
   }).join('');
 
   if(list.length === 0){
-    items = '<p class="empty-note">No theories match &ldquo;'+esc(s.theorySearch)+'&rdquo;.</p>';
+    items = '<p class="empty-note">No theories match &ldquo;'+esc(s.theorySearch)+'&rdquo; — yet. Maybe that\'s your opening.</p>';
   }
 
   return (
