@@ -219,6 +219,9 @@ button,input,textarea{font-family:inherit;color:inherit}
 .toast{ position:absolute; left:50%; bottom:calc(env(safe-area-inset-bottom) + 78px); transform:translateX(-50%); z-index:7; max-width:calc(100% - 40px); padding:11px 16px; border-radius:24px; background:var(--text); color:var(--bg); font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:12.5px; font-weight:600; text-align:center; box-shadow:0 8px 24px rgba(0,0,0,.3); cursor:pointer; animation:toastIn .25s cubic-bezier(.2,.9,.3,1) both; }
 @keyframes toastIn{ from{ opacity:0; transform:translateX(-50%) translateY(8px); } to{ opacity:1; transform:translateX(-50%) translateY(0); } }
 .legal-card h3{ font-family:var(--font-heading); font-weight:400; font-size:20px; margin:0 0 10px; }
+.legal-subhead{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin:16px 0 6px; }
+.legal-subhead:first-of-type{ margin-top:4px; }
+.legal-card a{ color:var(--accent); }
 .legal-card p{ font-size:13px; line-height:1.55; color:var(--text-dim); margin:0 0 12px; }
 .app-content::-webkit-scrollbar{ display:none }
 .tab-panel{ animation:fadeSlide .22s ease both; }
@@ -649,6 +652,23 @@ var sb = (window.supabase && SUPABASE_URL) ? window.supabase.createClient(SUPABA
 function signInWithGoogle(){
   if(!sb) return;
   sb.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: window.location.href } });
+}
+function requestDeleteAccount(){
+  if(!state.user) return;
+  if(!window.confirm('Delete your comments, votes, theories, ratings and favorites from our database, and sign you out? This can\'t be undone.')) return;
+  deleteAccountData();
+}
+async function deleteAccountData(){
+  if(!sb || !state.user) return;
+  var uid = state.user.id;
+  try{ await sb.from('comments').delete().eq('user_id', uid); }catch(e){}
+  try{ await sb.from('votes').delete().eq('user_id', uid); }catch(e){}
+  try{ await sb.from('user_theories').delete().eq('user_id', uid); }catch(e){}
+  try{ await sb.from('item_stats').delete().eq('user_id', uid); }catch(e){}
+  try{ await sb.from('profiles').delete().eq('user_id', uid); }catch(e){}
+  state.showLegal = false;
+  showToast('Your account data has been deleted.');
+  signOut();
 }
 function signOut(){
   if(!sb) return;
@@ -1369,7 +1389,7 @@ function template(s){
   else { header = renderSettingsHeader(); content = renderSettings(s); }
   var cookieBanner = s.cookieNoticeDismissed ? '' :
     '<div class="cookie-banner">'+
-      '<p>This app saves your watch progress, ratings and favorites locally on your device (no tracking cookies, nothing sent to a server). See <a href="#" data-act="showLegal">Privacy &amp; Legal</a>.</p>'+
+      '<p>This app stores basic data to work: your progress is saved on this device, and if you sign in, your email, comments, ratings and favorites are stored with our database provider (Supabase). No ads, no ad-tracking, no data sold. See <a href="#" data-act="showLegal">Privacy &amp; Legal</a>.</p>'+
       '<button type="button" class="cookie-ok" data-act="dismissCookieNotice">Got it</button>'+
     '</div>';
   var accountPill = s.user
@@ -1381,7 +1401,7 @@ function template(s){
     '<main class="app-content">'+content+'</main>'+
     renderTabbar(s)+
     cookieBanner+
-    (s.showLegal ? renderLegalModal() : '')+
+    (s.showLegal ? renderLegalModal(s) : '')+
     (s.authPrompt ? renderAuthModal() : '')+
     (s.toastMsg ? '<div class="toast" data-act="dismissToast">'+esc(s.toastMsg)+'</div>' : '')+
     (!s.fanNoticeDismissed ? renderFanNoticeModal() : '')
@@ -1411,14 +1431,38 @@ function renderFanNoticeModal(){
     '</div>'
   );
 }
-function renderLegalModal(){
+function renderLegalModal(s){
+  var deleteBlock = s.user
+    ? '<p><strong>Delete your account data:</strong> permanently removes your comments, votes, theories, ratings and favorites from our database, then signs you out. This can\'t be undone.</p>'+
+      '<button type="button" class="btn btn-danger" style="margin-bottom:16px" data-act="requestDeleteAccount">Delete my account &amp; data</button>'
+    : '';
   return (
     '<div class="legal-modal" data-act="closeLegal">'+
       '<div class="legal-card" data-act="stop">'+
         '<h3>Privacy &amp; Legal</h3>'+
-        '<p><strong>What this app stores:</strong> your watched titles, ratings, favorites and settings are saved only in your browser\'s local storage on this device. Nothing is uploaded, no account is required, and no analytics or tracking cookies are used.</p>'+
-        '<p><strong>Clearing your data:</strong> use Settings → Reset all progress, or clear this site\'s data in your browser to remove everything.</p>'+
-        '<p><strong>Third-party content:</strong> synopses and scores are editorial summaries for personal reference; all titles, names and imagery referenced belong to their respective rights holders. This is an unofficial fan companion, not affiliated with Marvel or Disney.</p>'+
+
+        '<h4 class="legal-subhead">What we collect</h4>'+
+        '<p><strong>On this device (always):</strong> your watched titles, ratings, favorites, theme and settings are saved in your browser\'s local storage. This never leaves your device unless you sign in.</p>'+
+        '<p><strong>If you sign in with Google:</strong> we receive your name, email address and profile photo from Google, and store them — along with any comments, votes, theories, ratings and favorites you post — in our database (Supabase). This lets your activity sync across devices and be visible to other signed-in users where the app shows shared content (comments, votes, community theories).</p>'+
+
+        '<h4 class="legal-subhead">Who else sees or processes data</h4>'+
+        '<p>We use two service providers: <strong>Google</strong> (for sign-in) and <strong>Supabase</strong> (database + authentication hosting). Both can access account data as needed to provide their service. We don\'t sell data, run ads, or use third-party analytics/tracking scripts.</p>'+
+
+        '<h4 class="legal-subhead">Cookies &amp; local storage</h4>'+
+        '<p>We don\'t use advertising or tracking cookies. We do use browser local storage to keep you signed in and remember your preferences — this is functionally necessary, not for tracking.</p>'+
+
+        '<h4 class="legal-subhead">Your choices</h4>'+
+        '<p><strong>Reset local progress:</strong> Settings → Reset all progress clears watched/ratings/favorites on this device.</p>'+
+        deleteBlock+
+
+        '<h4 class="legal-subhead">Who\'s behind this</h4>'+
+        '<p>Marvel for Dummies is an independent, non-commercial fan project. Questions about your data can be sent to <a href="mailto:lucrecubero19@gmail.com">lucrecubero19@gmail.com</a>.</p>'+
+        '<p>Not directed at children under 13; please don\'t use it if you\'re under that age. This policy may change as the app evolves — continued use means you accept the current version.</p>'+
+
+        '<h4 class="legal-subhead">Terms of use</h4>'+
+        '<p>This app is provided as-is, with no warranty, by a fan for fans. Use it at your own discretion. We may change or discontinue features at any time.</p>'+
+        '<p><strong>Content ownership:</strong> all titles, character names, artwork and likenesses referenced belong to Marvel, Disney and their respective rights holders. Synopses here are original editorial summaries for personal reference. This project is not affiliated with, endorsed by, or sponsored by Marvel or Disney.</p>'+
+
         '<button type="button" class="zoom-out-link" data-act="closeLegal">Close</button>'+
       '</div>'+
     '</div>'
@@ -1462,6 +1506,7 @@ root.addEventListener('click', function(e){
     case 'signOut': signOut(); break;
     case 'dismissAuthPrompt': dismissAuthPrompt(); break;
     case 'dismissFanNotice': dismissFanNotice(); break;
+    case 'requestDeleteAccount': requestDeleteAccount(); break;
     case 'setTab': setTab(id); break;
     case 'toggleFilters': toggleFilters(); break;
     case 'focusRoadmapItem': focusRoadmapItem(id); break;
