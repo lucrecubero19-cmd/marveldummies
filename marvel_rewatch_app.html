@@ -217,6 +217,18 @@ button,input,textarea{font-family:inherit;color:inherit}
 .legal-modal{ position:absolute; inset:0; z-index:6; background:rgba(0,0,0,.55); display:flex; align-items:flex-end; }
 .legal-card{ width:100%; max-height:80%; overflow-y:auto; padding:20px 20px calc(env(safe-area-inset-bottom) + 20px); border-radius:18px 18px 0 0; background:var(--surface); border:1px solid var(--divider); border-bottom:0; }
 .toast{ position:absolute; left:50%; bottom:calc(env(safe-area-inset-bottom) + 78px); transform:translateX(-50%); z-index:7; max-width:calc(100% - 40px); padding:11px 16px; border-radius:24px; background:var(--text); color:var(--bg); font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:12.5px; font-weight:600; text-align:center; box-shadow:0 8px 24px rgba(0,0,0,.3); cursor:pointer; animation:toastIn .25s cubic-bezier(.2,.9,.3,1) both; }
+
+#tour-overlay{ position:fixed; inset:0; z-index:9500; pointer-events:none; }
+.tour-ring{ position:fixed; border:3px solid var(--accent); border-radius:14px; box-shadow:0 0 0 4000px rgba(0,0,0,.55); pointer-events:none; transition:left .25s ease, top .25s ease, width .25s ease, height .25s ease; animation:tourPulse 1.6s ease-in-out infinite; }
+@keyframes tourPulse{ 0%,100%{ box-shadow:0 0 0 4000px rgba(0,0,0,.55), 0 0 0 0 var(--accent-soft); } 50%{ box-shadow:0 0 0 4000px rgba(0,0,0,.55), 0 0 0 8px var(--accent-soft); } }
+.tour-tip{ position:fixed; background:var(--surface); color:var(--text); border:1px solid var(--divider); padding:14px 16px; border-radius:14px; box-shadow:0 16px 40px rgba(0,0,0,.45); pointer-events:auto; font-size:13px; line-height:1.5; animation:fadeSlide .2s ease both; }
+.tour-tip-arrow{ position:absolute; width:14px; height:14px; background:var(--surface); border:1px solid var(--divider); }
+.tour-tip-arrow-up{ top:-8px; transform:translateX(-50%) rotate(45deg); border-bottom:0; border-right:0; }
+.tour-tip-arrow-down{ bottom:-8px; transform:translateX(-50%) rotate(45deg); border-top:0; border-left:0; }
+.tour-step-count{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:10.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin-bottom:6px; }
+.tour-tip-actions{ display:flex; align-items:center; justify-content:space-between; margin-top:12px; }
+.tour-skip{ background:none; border:0; color:var(--text-faint); font-size:12px; font-weight:600; cursor:pointer; padding:6px 0; }
+.tour-next{ background:var(--accent); color:var(--accent-ink); border:0; border-radius:20px; padding:8px 16px; font-weight:700; font-size:12px; cursor:pointer; }
 @keyframes toastIn{ from{ opacity:0; transform:translateX(-50%) translateY(8px); } to{ opacity:1; transform:translateX(-50%) translateY(0); } }
 .legal-card h3{ font-family:var(--font-heading); font-weight:400; font-size:20px; margin:0 0 10px; }
 .legal-subhead{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin:16px 0 6px; }
@@ -644,6 +656,16 @@ var THEMES = [
 ];
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 
+var TOUR_STEPS = [
+  {tab:'timeline', selector:'.account-pill', text:'Sign in here with Google to vote, rate, comment and favorite — it syncs across your devices too.'},
+  {tab:'timeline', selector:'.filters-toggle', text:'Tap Filters to switch between Story Order, Release Order, or head straight down the Doomsday Path.'},
+  {tab:'timeline', selector:'.fav-btn', text:'Tap the heart on any title to favorite it — turn your favorites into a personal storyboard later, on the Progress tab.'},
+  {tab:'timeline', selector:'.item-check', text:'Tap the circle to mark a title watched and track your progress.'},
+  {tab:'timeline', selector:'.tab-btn[data-id="progress"]', text:'Your overall progress, era-by-era breakdown, and favorites storyboard live here.'},
+  {tab:'timeline', selector:'.tab-btn[data-id="theories"]', text:'Read fan theories, vote Agree or Disagree, comment, or post your own.'},
+  {tab:'timeline', selector:'.tab-btn[data-id="settings"]', text:'Pick a hero color palette, set a display name, and manage your account here.'}
+];
+
 /* ---------- accounts (Supabase) ---------- */
 var SUPABASE_URL = 'https://yumauklwjtwyhyrynjgr.supabase.co';
 var SUPABASE_ANON_KEY = 'sb_publishable_KfBLrn6YHgBgx2CkC-n0hw_-nq8mWiQ';
@@ -750,6 +772,10 @@ function initAuth(){
     if(event === 'SIGNED_IN' && window.history && window.history.replaceState && /access_token|code=/.test(window.location.hash + window.location.search)){
       window.history.replaceState(null, '', window.location.pathname);
     }
+    if(event === 'SIGNED_IN' && !state.autoTourShown){
+      state.autoTourShown = true;
+      startTour();
+    }
   });
 }
 
@@ -764,7 +790,7 @@ function defaultState(){
     userTheories:[], showNewTheory:false, newTheoryTitle:'', newTheoryBody:'',
     theorySearch:'', theorySort:'new', scrolled:false,
     cookieNoticeDismissed:false, showLegal:false, fanNoticeDismissed:false,
-    showGuide:false, guideSeen:false,
+    showGuide:false, guideSeen:false, tourActive:false, tourStep:0, autoTourShown:false,
     user:null, authPrompt:false, remoteComments:{}, showStoryboard:false,
     displayName:'', displayNameDraft:'', toastMsg:null
   };
@@ -772,7 +798,7 @@ function defaultState(){
 function loadState(){
   try{
     var raw = localStorage.getItem(STORAGE_KEY);
-    if(raw){ var merged = Object.assign(defaultState(), JSON.parse(raw)); merged.toastMsg = null; merged.fanNoticeDismissed = false; merged.cookieNoticeDismissed = false; return merged; }
+    if(raw){ var merged = Object.assign(defaultState(), JSON.parse(raw)); merged.toastMsg = null; merged.fanNoticeDismissed = false; merged.cookieNoticeDismissed = false; merged.tourActive = false; return merged; }
   }catch(e){}
   return defaultState();
 }
@@ -856,6 +882,69 @@ function dismissCookieNotice(){ state.cookieNoticeDismissed = true; commit(); }
 function dismissFanNotice(){ state.fanNoticeDismissed = true; commit(); }
 function showLegal(){ state.showLegal = true; commit(); }
 function showGuide(){ state.showGuide = true; state.guideSeen = true; commit(); }
+function startTour(){
+  state.tourActive = true; state.tourStep = 0; state.authPrompt = false; state.showLegal = false; state.showGuide = false;
+  var step = TOUR_STEPS[0];
+  if(step.tab) state.tab = step.tab;
+  commit();
+}
+function nextTourStep(){
+  state.tourStep++;
+  if(state.tourStep >= TOUR_STEPS.length){ endTour(); return; }
+  var step = TOUR_STEPS[state.tourStep];
+  if(step.tab) state.tab = step.tab;
+  commit();
+}
+function endTour(){
+  state.tourActive = false;
+  removeTourOverlay();
+  commit();
+}
+function removeTourOverlay(){
+  var el = document.getElementById('tour-overlay');
+  if(el) el.remove();
+}
+var tourRenderToken = 0;
+function updateTourOverlay(){
+  var myToken = ++tourRenderToken;
+  if(window.requestAnimationFrame){
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){ if(myToken === tourRenderToken) positionTourOverlay(); }); });
+  }
+  else positionTourOverlay();
+}
+function positionTourOverlay(){
+  if(!state.tourActive) return;
+  var step = TOUR_STEPS[state.tourStep];
+  if(!step){ removeTourOverlay(); return; }
+  var target = root.querySelector(step.selector);
+  if(!target){ nextTourStep(); return; }
+  if(target.scrollIntoView) target.scrollIntoView({block:'center', behavior:'auto'});
+  var rect = target.getBoundingClientRect();
+  var overlay = document.getElementById('tour-overlay');
+  if(!overlay){
+    overlay = document.createElement('div');
+    overlay.id = 'tour-overlay';
+    document.body.appendChild(overlay);
+  }
+  var vw = window.innerWidth, vh = window.innerHeight;
+  var tipWidth = Math.min(280, vw - 32);
+  var placeBelow = (rect.bottom + 160) < vh;
+  var tipTop = placeBelow ? (rect.bottom + 14) : Math.max(12, rect.top - 14 - 140);
+  var tipLeft = Math.min(Math.max(12, rect.left + rect.width/2 - tipWidth/2), vw - tipWidth - 12);
+  var arrowLeft = Math.max(16, Math.min(tipWidth-16, (rect.left + rect.width/2) - tipLeft));
+  overlay.innerHTML =
+    '<div class="tour-ring" style="left:'+(rect.left-6)+'px;top:'+(rect.top-6)+'px;width:'+(rect.width+12)+'px;height:'+(rect.height+12)+'px;"></div>'+
+    '<div class="tour-tip" style="top:'+tipTop+'px;left:'+tipLeft+'px;width:'+tipWidth+'px;">'+
+      (placeBelow ? '<div class="tour-tip-arrow tour-tip-arrow-up" style="left:'+arrowLeft+'px"></div>' : '')+
+      '<div class="tour-step-count">Step '+(state.tourStep+1)+' of '+TOUR_STEPS.length+'</div>'+
+      '<div>'+esc(step.text)+'</div>'+
+      '<div class="tour-tip-actions">'+
+        '<button type="button" class="tour-skip" onclick="endTour()">Skip</button>'+
+        '<button type="button" class="tour-next" onclick="nextTourStep()">'+(state.tourStep+1>=TOUR_STEPS.length?'Done':'Next')+'</button>'+
+      '</div>'+
+      (!placeBelow ? '<div class="tour-tip-arrow tour-tip-arrow-down" style="left:'+arrowLeft+'px"></div>' : '')+
+    '</div>';
+}
 function closeGuide(){ state.showGuide = false; commit(); }
 function closeLegal(){ state.showLegal = false; commit(); }
 function setLayout(v){ state.layout = v; state.roadmapFocus = null; commit(); }
@@ -1343,7 +1432,8 @@ function renderSettings(s){
       '</div>';
   return (
     '<div class="tab-panel">'+
-      '<h6 class="section-label" style="margin-top:8px">Account</h6>'+
+      '<button type="button" class="btn btn-primary" style="margin:8px 0 16px" data-act="startTour">Take a quick tour</button>'+
+      '<h6 class="section-label">Account</h6>'+
       accountBlock+
       '<h6 class="section-label">Preferences</h6>'+
       '<div class="pref-row"><span class="pref-label">Notifications for new releases</span>'+
@@ -1556,6 +1646,7 @@ function render(){
       if(selStart!=null && el.setSelectionRange){ try{ el.setSelectionRange(selStart, selEnd); }catch(e){} }
     }
   }
+  if(state.tourActive) updateTourOverlay(); else removeTourOverlay();
 }
 
 /* ---------- event delegation ---------- */
@@ -1570,6 +1661,9 @@ root.addEventListener('click', function(e){
     case 'showLegal': showLegal(); break;
     case 'closeLegal': closeLegal(); break;
     case 'showGuide': showGuide(); break;
+    case 'startTour': startTour(); break;
+    case 'nextTourStep': nextTourStep(); break;
+    case 'endTour': endTour(); break;
     case 'closeGuide': closeGuide(); break;
     case 'signIn': signInWithGoogle(); break;
     case 'signOut': signOut(); break;
