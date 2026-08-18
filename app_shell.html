@@ -674,7 +674,7 @@ function toggleFavorite(id){
   if(!was) state.favoriteOrder.unshift(id);
   commit();
   saveItemStat(id);
-  if(!was) showToast('Added to favorites — find it under Progress ▸ Your favorites');
+  if(!was) showToast('I love you 3000 — added to favorites, find it under Progress ▸ Your favorites');
 }
 function toggleNotif(){ state.notif = !state.notif; commit(); }
 function dismissCookieNotice(){ state.cookieNoticeDismissed = true; commit(); }
@@ -695,9 +695,11 @@ function nextTourStep(){
   commit();
 }
 function endTour(){
+  var wasOnLastStep = state.tourStep >= TOUR_STEPS.length - 1;
   state.tourActive = false;
   removeTourOverlay();
   commit();
+  if(wasOnLastStep) showToast('That\'s the tour. Now — I can do this all day.');
 }
 function removeTourOverlay(){
   var el = document.getElementById('tour-overlay');
@@ -1244,7 +1246,8 @@ function renderSettings(s){
       '</div>';
   return (
     '<div class="tab-panel">'+
-      '<button type="button" class="btn btn-primary" style="margin:8px 0 16px" data-act="startTour">Take a quick tour</button>'+
+      '<button type="button" class="btn btn-primary" style="margin:8px 0 4px" data-act="startTour">Take a quick tour</button>'+
+      '<p class="consent-note" style="margin:0 0 16px">It\'s quick. I can do this all day.</p>'+
       '<h6 class="section-label">Account</h6>'+
       accountBlock+
       '<h6 class="section-label">Preferences</h6>'+
@@ -1271,7 +1274,7 @@ function renderSettings(s){
         '<button type="button" class="btn btn-danger" data-act="resetProgress">Reset all progress</button>'+
       '</div>'+
       '<h6 class="section-label">About</h6>'+
-      '<p class="about-text">Marvel for Dummies is a companion for rewatching the MCU in story order — every film, series, special and short, grouped by era. Your progress, ratings and theories are saved on this device.</p>'+
+      '<p class="about-text">Marvel for Dummies is a companion for rewatching the MCU in story order — whatever it takes to get every film, series, special and short watched in the right order. Your progress, ratings and theories are saved on this device.</p>'+
       '<p class="about-text" style="opacity:.7;font-size:11.5px">All character names, titles and likenesses belong to Marvel/Disney and their respective rights holders. This is an unofficial, non-commercial fan project.</p>'+
       '<button type="button" class="filters-toggle" style="margin:2px 0 8px;display:block" data-act="showGuide">How to use this app ▸</button>'+
       '<button type="button" class="filters-toggle" style="margin:2px 0 12px;display:block" data-act="showLegal">Privacy &amp; Legal ▸</button>'+
@@ -1323,7 +1326,7 @@ function renderAuthModal(){
     '<div class="legal-modal" data-act="dismissAuthPrompt">'+
       '<div class="legal-card" data-act="stop">'+
         '<h3>Sign in to join in</h3>'+
-        '<p>Voting, rating, favoriting and posting theories or comments need an account, so everyone sees the same shared list instead of a copy stuck on one phone.</p>'+
+        '<p>Voting, rating, favoriting and posting theories or comments need an account, so everyone sees the same shared list instead of a copy stuck on one phone. With great power comes a Code of Conduct — be decent.</p>'+
         '<button type="button" class="btn btn-primary" data-act="signIn" style="margin-bottom:10px">Continue with Google</button>'+
         '<p class="consent-note">By continuing, you agree to our <a href="#" data-act="showLegal">Terms of Use, Privacy Policy and Cookie Policy</a> — including that comments, votes, ratings and favorites are stored with our database provider and may be visible to other users.</p>'+
         '<button type="button" class="zoom-out-link" data-act="dismissAuthPrompt">Not now</button>'+
