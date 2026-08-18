@@ -458,7 +458,7 @@ var TOUR_STEPS = [
   {tab:'timeline', selector:'.filters-toggle', text:'Tap Filters to switch between Story Order, Release Order, or head straight down the Doomsday Path.'},
   {tab:'timeline', selector:'.fav-btn', text:'Tap the heart on any title to favorite it — turn your favorites into a personal storyboard later, on the Progress tab.'},
   {tab:'timeline', selector:'.item-check', text:'Tap the circle to mark a title watched and track your progress.'},
-  {tab:'timeline', selector:'.tab-btn[data-id="progress"]', text:'Your overall progress, era-by-era breakdown, and favorites storyboard live here.'},
+  {tab:'timeline', selector:'.tab-btn[data-id="home"]', text:'Your overall progress, era-by-era breakdown, and favorites storyboard live here.'},
   {tab:'timeline', selector:'.tab-btn[data-id="theories"]', text:'Read fan theories, vote Agree or Disagree, comment, or post your own.'},
   {tab:'timeline', selector:'.tab-btn[data-id="settings"]', text:'Pick a hero color palette, set a display name, and manage your account here.'}
 ];
@@ -709,12 +709,17 @@ function updateTourOverlay(){
   }
   else positionTourOverlay();
 }
-function positionTourOverlay(){
+function positionTourOverlay(retriesLeft){
   if(!state.tourActive) return;
   var step = TOUR_STEPS[state.tourStep];
   if(!step){ removeTourOverlay(); return; }
   var target = root.querySelector(step.selector);
-  if(!target){ nextTourStep(); return; }
+  if(!target){
+    retriesLeft = retriesLeft==null ? 5 : retriesLeft;
+    if(retriesLeft > 0){ setTimeout(function(){ positionTourOverlay(retriesLeft-1); }, 100); }
+    else nextTourStep();
+    return;
+  }
   if(target.scrollIntoView) target.scrollIntoView({block:'center', behavior:'auto'});
   var rect = target.getBoundingClientRect();
   var overlay = document.getElementById('tour-overlay');
