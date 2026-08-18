@@ -393,6 +393,8 @@ button,input,textarea{font-family:inherit;color:inherit}
 .swatch-name{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:12.5px; font-weight:700; display:block; }
 .swatch-desc{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:10.5px; color:var(--text-dim); display:block; margin-top:2px; }
 .about-text{ font-size:13.5px; line-height:1.6; color:var(--text-dim); padding-top:6px; }
+.consent-note{ font-size:11px; line-height:1.5; color:var(--text-faint); margin:8px 0 0; }
+.consent-note a{ color:var(--accent); }
 
 /* tab bar */
 .tabbar{ flex:none; display:flex; border-top:1px solid var(--divider); background:var(--bg); padding-bottom:env(safe-area-inset-bottom); }
@@ -1130,7 +1132,9 @@ function renderSettings(s){
           '<button type="button" class="btn" style="width:auto" data-act="saveDisplayName">Save</button>'+
         '</div>'+
       '</div>'
-    : '<div style="padding:12px 0;border-top:1px solid var(--divider)"><button type="button" class="btn btn-primary" data-act="signIn">Continue with Google</button></div>';
+    : '<div style="padding:12px 0;border-top:1px solid var(--divider)"><button type="button" class="btn btn-primary" data-act="signIn">Continue with Google</button>'+
+        '<p class="consent-note">By continuing, you agree to our <a href="#" data-act="showLegal">Terms of Use, Privacy Policy and Cookie Policy</a>.</p>'+
+      '</div>';
   return (
     '<div class="tab-panel">'+
       '<h6 class="section-label" style="margin-top:8px">Account</h6>'+
@@ -1211,6 +1215,7 @@ function renderAuthModal(){
         '<h3>Sign in to join in</h3>'+
         '<p>Voting, rating, favoriting and posting theories or comments need an account, so everyone sees the same shared list instead of a copy stuck on one phone.</p>'+
         '<button type="button" class="btn btn-primary" data-act="signIn" style="margin-bottom:10px">Continue with Google</button>'+
+        '<p class="consent-note">By continuing, you agree to our <a href="#" data-act="showLegal">Terms of Use, Privacy Policy and Cookie Policy</a> — including that comments, votes, ratings and favorites are stored with our database provider and may be visible to other users.</p>'+
         '<button type="button" class="zoom-out-link" data-act="dismissAuthPrompt">Not now</button>'+
       '</div>'+
     '</div>'
@@ -1270,6 +1275,18 @@ function renderLegalModal(s){
         '<h4 class="legal-subhead">Terms of use</h4>'+
         '<p>This app is provided as-is, with no warranty, by a fan for fans. Use it at your own discretion. We may change or discontinue features at any time.</p>'+
         '<p><strong>Content ownership:</strong> all titles, character names, artwork and likenesses referenced belong to Marvel, Disney and their respective rights holders. Synopses here are original editorial summaries for personal reference. This project is not affiliated with, endorsed by, or sponsored by Marvel or Disney.</p>'+
+
+        '<h4 class="legal-subhead">User content disclaimer</h4>'+
+        '<p>Comments, votes and theories are posted by individual users, not by us. They reflect the views of whoever wrote them, not the site owner\'s. We don\'t review content before it\'s posted and aren\'t responsible for what users say — but we will remove content that violates the Code of Conduct or the law once we\'re made aware of it.</p>'+
+
+        '<h4 class="legal-subhead">Copyright / DMCA notice</h4>'+
+        '<p>If you believe content on this app infringes your copyright, email <a href="mailto:lucrecubero19@gmail.com">lucrecubero19@gmail.com</a> with:</p>'+
+        '<p>1. The specific content and where it appears in the app<br>'+
+        '2. Your contact information<br>'+
+        '3. A statement that you have a good-faith belief the use is unauthorized<br>'+
+        '4. A statement, under penalty of perjury, that you\'re the rights holder or authorized to act on their behalf<br>'+
+        '5. Your signature (physical or electronic)</p>'+
+        '<p>We\'ll review valid notices and remove or disable access to the reported content promptly.</p>'+
 
         '<button type="button" class="zoom-out-link" data-act="closeLegal">Close</button>'+
       '</div>'+
