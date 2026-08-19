@@ -21,9 +21,11 @@ const RAW_ERAS = [
 {id:'guardians2',title:'Guardians of the Galaxy Vol. 2',year:2017,type:'movie',runtime:'137 min',min:137,critic:85,synopsis:"Star-Lord meets his mysterious father as the Guardians fend off new threats and old rivalries."},
 {id:'age-of-ultron',title:'Avengers: Age of Ultron',year:2015,type:'movie',runtime:'141 min',min:141,critic:75,synopsis:"The Avengers face an artificial intelligence of their own making that wants to wipe out humanity."},
 {id:'ant-man',title:'Ant-Man',year:2015,type:'movie',runtime:'117 min',min:117,critic:83,synopsis:"A reformed thief dons a size-shifting suit to pull off a heist that could save the world."},
+{id:'agents-of-shield-s3',title:'Agents of S.H.I.E.L.D. (S3)',year:2015,type:'series',runtime:'~22 eps',min:970,critic:81,synopsis:"The team confronts the emergence of Inhumans and a shadowy Inhuman conspiracy, setting up tensions the Sokovia Accords will soon inflame."},
 {id:'civil-war',title:'Captain America: Civil War',year:2016,type:'movie',runtime:'147 min',min:147,critic:90,synopsis:"A political rift splits the Avengers into opposing factions over accountability for collateral damage."},
 ]},
 {id:'expansion',name:'New Faces',years:'2016–2018',blurb:"With the Avengers fractured, the universe widens instead of narrowing — magic, a teenage hero, Asgard's fall, Wakanda opening up. It's the calm-before-the-storm stretch, quietly assembling exactly the roster Thanos is about to test.",items:[
+{id:'agents-of-shield-s4',title:'Agents of S.H.I.E.L.D. (S4)',year:2016,type:'series',runtime:'~22 eps',min:970,critic:82,synopsis:"In the aftermath of the Sokovia Accords, the team goes underground and collides with Ghost Rider, LMDs and a virtual-reality threat."},
 {id:'black-widow',title:'Black Widow',year:2020,type:'movie',runtime:'134 min',min:134,critic:79,synopsis:"Natasha Romanoff confronts a dark chapter of her past alongside the family she never knew she had."},
 {id:'doctor-strange',title:'Doctor Strange',year:2016,type:'movie',runtime:'115 min',min:115,critic:89,synopsis:"A brilliant but arrogant surgeon learns the mystic arts after a career-ending accident."},
 {id:'homecoming',title:'Spider-Man: Homecoming',year:2017,type:'movie',runtime:'133 min',min:133,critic:92,synopsis:"A teenage Peter Parker balances high school with his new responsibilities as a hero."},
