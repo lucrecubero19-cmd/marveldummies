@@ -545,11 +545,20 @@ async function loadRemoteData(){
       var sres = await sb.from('item_stats').select('*').eq('user_id', state.user.id);
       if(sres.data){
         var favs={}, favOrder=[], ratings={};
+        var watched = Object.assign({}, state.watched);
+        var watchedOrder = state.watchedOrder.slice();
+        var remoteWatchedIds = {};
         sres.data.forEach(function(r){
           if(r.favorite){ favs[r.item_id]=true; favOrder.push(r.item_id); }
           if(r.rating) ratings[r.item_id]=r.rating;
+          if(r.watched){
+            remoteWatchedIds[r.item_id]=true;
+            if(!watched[r.item_id]){ watched[r.item_id]=true; watchedOrder.push(r.item_id); }
+          }
         });
         state.favorites=favs; state.favoriteOrder=favOrder; state.ratings=ratings;
+        state.watched=watched; state.watchedOrder=watchedOrder;
+        Object.keys(watched).forEach(function(id){ if(watched[id] && !remoteWatchedIds[id]) saveItemStat(id); });
       }
     }catch(e){}
   }
@@ -627,6 +636,7 @@ function toggleWatched(id){
   state.watchedOrder = state.watchedOrder.filter(function(x){ return x!==id; });
   if(!was) state.watchedOrder.unshift(id);
   commit();
+  saveItemStat(id);
 }
 var ADMIN_EMAIL = 'lucrecubero19@gmail.com';
 function isAdmin(){ return !!(state.user && state.user.email === ADMIN_EMAIL); }
@@ -648,7 +658,7 @@ function saveItemStat(id){
   if(!sb || !state.user) return;
   sb.from('item_stats').upsert({
     user_id: state.user.id, item_id: id,
-    favorite: !!state.favorites[id], rating: state.ratings[id]||null
+    favorite: !!state.favorites[id], rating: state.ratings[id]||null, watched: !!state.watched[id]
   }, {onConflict:'user_id,item_id'}).then(function(){});
 }
 function setRating(id, n){

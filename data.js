@@ -48,7 +48,7 @@ const RAW_ERAS = [
 {id:'wandavision',title:'WandaVision',year:2021,type:'series',runtime:'9 eps',min:340,critic:92,synopsis:"Wanda Maximoff and Vision live an idealized suburban life that hides a growing, grief-fueled distortion."},
 {id:'falcon-ws',title:'The Falcon and the Winter Soldier',year:2021,type:'series',runtime:'6 eps',min:290,critic:84,synopsis:"Sam Wilson and Bucky Barnes team up against a militant group and a new claimant to the shield."},
 {id:'loki-s1',title:'Loki (Season 1)',year:2021,type:'series',runtime:'6 eps',min:290,critic:92,synopsis:"A variant Loki is recruited by a bureaucratic agency that polices the flow of time."},
-{id:'what-if',title:'What If…? (Season 1)',year:2021,type:'series',runtime:'9 eps',min:210,critic:89,synopsis:"An animated anthology explores how single changes ripple into entirely different timelines."},
+{id:'what-if-s1',title:'What If…? (Season 1)',year:2021,type:'series',runtime:'9 eps',min:210,critic:89,synopsis:"An animated anthology explores how single changes ripple into entirely different timelines."},
 {id:'shang-chi',title:'Shang-Chi and the Legend of the Ten Rings',year:2021,type:'movie',runtime:'132 min',min:132,critic:92,synopsis:"A man confronts the past he thought he left behind, and the mysterious organization his father leads."},
 {id:'eternals',title:'Eternals',year:2021,type:'movie',runtime:'157 min',min:157,critic:47,synopsis:"A team of ancient immortal beings reunites to protect Earth from their monstrous counterparts."},
 {id:'hawkeye',title:'Hawkeye',year:2021,type:'series',runtime:'6 eps',min:290,critic:92,synopsis:"Clint Barton trains a young archer while trying to make it home for Christmas."},
@@ -68,9 +68,11 @@ const RAW_ERAS = [
 {id:'guardians3',title:'Guardians of the Galaxy Vol. 3',year:2023,type:'movie',runtime:'150 min',min:150,critic:82,synopsis:"The Guardians go on a dangerous mission to save Rocket's life and confront his tragic origin."},
 {id:'secret-invasion',title:'Secret Invasion',year:2023,type:'series',runtime:'6 eps',min:220,critic:53,synopsis:"Nick Fury uncovers a decades-long infiltration of Earth by shapeshifting Skrulls."},
 {id:'loki-s2',title:'Loki (Season 2)',year:2023,type:'series',runtime:'6 eps',min:290,critic:93,synopsis:"Loki races to stabilize the timeline and the TVA as the multiverse threatens to unravel."},
+{id:'what-if-s2',title:'What If…? (Season 2)',year:2023,type:'series',runtime:'9 eps',min:220,critic:85,synopsis:"More single changes ripple into entirely different timelines, from a Peggy Carter-led Wakanda to a Nebula-Killmonger team-up."},
 {id:'echo',title:'Echo',year:2024,type:'series',runtime:'5 eps',min:210,critic:72,synopsis:"Maya Lopez returns to her hometown and confronts her family's criminal legacy."},
 {id:'x-men-97',title:"X-Men '97",year:2024,type:'series',runtime:'10 eps',min:220,critic:99,synopsis:"The animated team carries on the X-Men's mission after the loss of their mentor, Professor Xavier."},
 {id:'agatha',title:'Agatha All Along',year:2024,type:'series',runtime:'9 eps',min:290,critic:94,synopsis:"A powerless witch assembles a coven to walk the deadly Witches' Road and reclaim her magic."},
+{id:'what-if-s3',title:'What If…? (Season 3)',year:2024,type:'series',runtime:'10 eps',min:250,critic:83,synopsis:"The animated anthology's final season closes out with its most ambitious multiversal stories yet, including a full Guardians of the Multiverse team-up."},
 {id:'deadpool-wolverine',title:'Deadpool & Wolverine',year:2024,type:'movie',runtime:'128 min',min:128,critic:78,synopsis:"A washed-up Deadpool recruits a reluctant Wolverine variant on a mission across the multiverse."},
 {id:'daredevil-born-again',title:'Daredevil: Born Again',year:2025,type:'series',runtime:'9 eps',min:400,critic:93,synopsis:"Matt Murdock rebuilds his double life as Wilson Fisk rises to power in New York City."},
 {id:'thunderbolts',title:'Thunderbolts*',year:2025,type:'movie',runtime:'127 min',min:127,critic:88,synopsis:"A team of morally gray operatives is thrown together and forced to work as a group."},
@@ -203,6 +205,6 @@ function fanScoreFor(id, critic){
 }
 const ALL_THEORIES = [...FRESH_THEORIES, ...THEORIES];
 const ALL_ITEMS = [...RAW_ERAS, ...OTHER_ERAS].flatMap(e=>e.items);
-const DOOMSDAY_PATH = ['avengers1','age-of-ultron','infinity-war','endgame','no-way-home','wandavision','loki-s1','what-if','multiverse-madness','quantumania','loki-s2','days-future-past','logan','x-men','deadpool-wolverine','the-marvels','secret-invasion','agatha','x-men-97','fantastic-four','thunderbolts','spiderman-brand-new-day','avengers-doomsday'];
+const DOOMSDAY_PATH = ['avengers1','age-of-ultron','infinity-war','endgame','no-way-home','wandavision','loki-s1','what-if-s1','multiverse-madness','quantumania','loki-s2','days-future-past','logan','x-men','deadpool-wolverine','the-marvels','secret-invasion','agatha','x-men-97','fantastic-four','thunderbolts','spiderman-brand-new-day','avengers-doomsday'];
 const TYPE_TAG = {movie:'tag-accent',series:'tag-accent-2',special:'tag-neutral',short:'tag-outline'};
 const TYPE_LABEL = {movie:'FILM',series:'SERIES',special:'SPECIAL',short:'SHORT'};
