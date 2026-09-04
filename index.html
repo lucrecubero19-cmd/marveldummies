@@ -232,6 +232,11 @@ button,input,textarea{font-family:inherit;color:inherit}
 @keyframes toastIn{ from{ opacity:0; transform:translateX(-50%) translateY(8px); } to{ opacity:1; transform:translateX(-50%) translateY(0); } }
 .legal-card h3{ font-family:var(--font-heading); font-weight:400; font-size:20px; margin:0 0 10px; }
 .legal-subhead{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin:16px 0 6px; }
+.quiz-option{ display:block; width:100%; text-align:left; padding:12px 14px; margin-bottom:8px; border-radius:var(--card-radius); border:1px solid var(--divider); background:var(--surface-2); color:var(--text); font-size:14px; cursor:pointer; }
+.quiz-option:active{ background:var(--accent-soft); border-color:var(--accent); }
+.quiz-result{ text-align:center; }
+.quiz-result-name{ font-family:var(--font-heading); font-weight:400; font-size:34px; margin:2px 0 0; color:var(--accent); }
+.quiz-result-sub{ font-size:12px; color:var(--text-faint); margin:2px 0 0; }
 .legal-subhead:first-of-type{ margin-top:4px; }
 .legal-card a{ color:var(--accent); }
 .legal-card p{ font-size:13px; line-height:1.55; color:var(--text-dim); margin:0 0 12px; }
@@ -315,6 +320,9 @@ button,input,textarea{font-family:inherit;color:inherit}
 .roadmap-era.is-zoomed .roadmap-era-dot{ transform:scale(1.5); box-shadow:0 0 0 4px var(--bg), 0 0 0 6px var(--accent-soft); }
 .storyboard{ margin:0 0 18px; }
 .storyboard-poster{ text-align:center; padding:6px 0 16px; }
+.compat-card{ text-align:center; padding:14px; margin-bottom:16px; border-radius:var(--card-radius); border:1.5px solid var(--accent); background:var(--accent-soft); }
+.compat-pct{ font-family:var(--font-heading); font-weight:400; font-size:38px; color:var(--accent); line-height:1; }
+.compat-label{ font-size:12.5px; color:var(--text-dim); margin-top:4px; }
 .storyboard-line{ display:none; }
 .storyboard-card{ position:relative; display:flex; gap:12px; padding:14px 0; border-top:1px solid var(--divider); }
 .storyboard-num{ flex:none; width:26px; height:26px; border-radius:50%; background:var(--accent-soft); color:var(--accent); font-family:var(--font-heading); font-weight:400; font-size:13px; display:flex; align-items:center; justify-content:center; margin-top:2px; }
@@ -661,6 +669,56 @@ var THEMES = [
   {id:'widow', name:"SHIELD's Best Agent", desc:'Red & black', dots:['#101010','#ff0000']},
   {id:'hulk', name:'Big Guy', desc:'Green & purple', dots:['#35B02E','#7C24A0']}
 ];
+var CHARACTERS = {
+  ironman:{name:'Tin Can', title:'Iron Man', desc:"You lead with your brain, crack jokes to survive the pressure, and would rather build the solution yourself than wait for someone else to. You care more than you let on.", movies:['iron-man','iron-man-2','iron-man-3','avengers1','civil-war']},
+  spiderman:{name:'Friendly Neighbour', title:'Spider-Man', desc:"You're the one who shows up — for the small stuff and the huge stuff alike. Responsibility isn't a burden to you, it's just what you do, even when nobody's watching.", movies:['homecoming','far-from-home','no-way-home']},
+  cap:{name:"America's Ass", title:'Captain America', desc:"You do the right thing even when it costs you, and you don't need anyone's permission to say so. Loyalty and principle come before convenience, every time.", movies:['cap1','winter-soldier','civil-war','endgame']},
+  thor:{name:'Goldilocks', title:'Thor', desc:"You've got big energy, a bigger heart, and you've learned the hard way that strength means nothing without the people who make it worth having. You laugh loud and love harder.", movies:['thor','thor-dark-world','ragnarok','love-thunder']},
+  widow:{name:"SHIELD's Best Agent", title:'Black Widow', desc:"You keep your cards close, get the job done quietly, and carry more than you show. People underestimate you right up until they don't.", movies:['black-widow','avengers1','winter-soldier','endgame']},
+  hulk:{name:'Big Guy', title:'Hulk', desc:"You feel things at full volume, and you're done apologizing for it. What looks like a temper to everyone else is just you, finally letting it out.", movies:['hulk','avengers1','age-of-ultron','ragnarok']}
+};
+var QUIZ_QUESTIONS = [
+  {q:"A mission just went sideways. Your first move?", options:[
+    {text:'Improvise a fix with whatever tech is on hand', hero:'ironman'},
+    {text:'Web-swing in and figure it out as you go', hero:'spiderman'},
+    {text:'Rally everyone and hold the line', hero:'cap'},
+    {text:'Hit it harder', hero:'thor'},
+    {text:'Already three steps ahead, quietly', hero:'widow'},
+    {text:'Get angry. Very, very angry', hero:'hulk'}
+  ]},
+  {q:"What's your idea of a good time?", options:[
+    {text:'Building something nobody thought was possible', hero:'ironman'},
+    {text:'Hanging out with friends after class', hero:'spiderman'},
+    {text:'A quiet night in, up early tomorrow', hero:'cap'},
+    {text:'A feast, a fight, a good story after', hero:'thor'},
+    {text:'Somewhere no one can find you', hero:'widow'},
+    {text:'Somewhere quiet, on your own terms', hero:'hulk'}
+  ]},
+  {q:"Someone on your team messes up badly. You...", options:[
+    {text:'Roast them a little, then help fix it', hero:'ironman'},
+    {text:'Reassure them — everyone messes up', hero:'spiderman'},
+    {text:'Tell them straight, then back them completely', hero:'cap'},
+    {text:'Laugh it off, mistakes happen', hero:'thor'},
+    {text:'Quietly clean it up before anyone notices', hero:'widow'},
+    {text:'Need a minute before you can talk about it', hero:'hulk'}
+  ]},
+  {q:"Pick a weakness you'll actually admit to.", options:[
+    {text:'Ego', hero:'ironman'},
+    {text:'Taking on too much at once', hero:'spiderman'},
+    {text:'Stubbornness', hero:'cap'},
+    {text:'Overconfidence', hero:'thor'},
+    {text:'Trusting people too slowly', hero:'widow'},
+    {text:'A short fuse', hero:'hulk'}
+  ]},
+  {q:"What actually motivates you?", options:[
+    {text:'Proving it can be done', hero:'ironman'},
+    {text:'Protecting the people who can\'t protect themselves', hero:'spiderman'},
+    {text:'Doing right, no matter what it costs', hero:'cap'},
+    {text:'Earning the people you love', hero:'thor'},
+    {text:'Making things right, quietly', hero:'widow'},
+    {text:'Being understood for once', hero:'hulk'}
+  ]}
+];
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 
 var TOUR_STEPS = [
@@ -750,6 +808,7 @@ async function loadRemoteData(){
     try{
       var pres = await sb.from('profiles').select('*').eq('user_id', state.user.id).maybeSingle();
       if(pres.data && pres.data.display_name){ state.displayName = pres.data.display_name; }
+      if(pres.data && pres.data.quiz_result && !state.quizResult){ state.quizResult = pres.data.quiz_result; }
     }catch(e){}
     try{
       var sres = await sb.from('item_stats').select('*').eq('user_id', state.user.id);
@@ -807,6 +866,7 @@ function defaultState(){
     theorySearch:'', theorySort:'new', scrolled:false,
     cookieNoticeDismissed:false, showLegal:false, fanNoticeDismissed:false,
     showGuide:false, guideSeen:false, tourActive:false, tourStep:0, autoTourShown:false,
+    showQuiz:false, quizStep:0, quizScores:null, quizResult:null,
     user:null, authPrompt:false, remoteComments:{}, showStoryboard:false,
     displayName:'', displayNameDraft:'', toastMsg:null
   };
@@ -901,6 +961,31 @@ function dismissCookieNotice(){ state.cookieNoticeDismissed = true; commit(); }
 function dismissFanNotice(){ state.fanNoticeDismissed = true; commit(); }
 function showLegal(){ state.showLegal = true; commit(); }
 function showGuide(){ state.showGuide = true; state.guideSeen = true; commit(); }
+function startQuiz(){ state.showQuiz = true; state.quizStep = 0; state.quizScores = {}; state.quizResult = null; commit(); }
+function closeQuiz(){ state.showQuiz = false; commit(); }
+function answerQuiz(hero){
+  state.quizScores[hero] = (state.quizScores[hero]||0) + 1;
+  if(state.quizStep + 1 >= QUIZ_QUESTIONS.length){
+    var best = null, bestScore = -1;
+    Object.keys(CHARACTERS).forEach(function(id){
+      var sc = state.quizScores[id] || 0;
+      if(sc > bestScore){ bestScore = sc; best = id; }
+    });
+    state.quizResult = best;
+    if(sb && state.user) sb.from('profiles').upsert({user_id:state.user.id, quiz_result:best}, {onConflict:'user_id'}).then(function(){});
+  } else {
+    state.quizStep++;
+  }
+  commit();
+}
+function retakeQuiz(){ state.quizStep = 0; state.quizScores = {}; state.quizResult = null; commit(); }
+function goToCompatibility(){ state.showQuiz = false; state.tab = 'home'; commit(); }
+function compatibilityPct(heroId, favIds){
+  var ch = CHARACTERS[heroId];
+  if(!ch || !favIds.length) return 0;
+  var shared = ch.movies.filter(function(id){ return favIds.indexOf(id) !== -1; }).length;
+  return Math.round((shared / ch.movies.length) * 100);
+}
 function startTour(){
   state.tourActive = true; state.tourStep = 0; state.authPrompt = false; state.showLegal = false; state.showGuide = false;
   var step = TOUR_STEPS[0];
@@ -1289,9 +1374,22 @@ function renderStoryboard(s){
       '</div>'
     );
   }).join('');
+  var compatBlock;
+  if(s.quizResult){
+    var ch = CHARACTERS[s.quizResult];
+    var pct = compatibilityPct(s.quizResult, picks.map(function(it){ return it.id; }));
+    compatBlock =
+      '<div class="compat-card">'+
+        '<div class="compat-pct">'+pct+'%</div>'+
+        '<div class="compat-label">compatible with <strong>'+esc(ch.name)+'</strong> ('+esc(ch.title)+')</div>'+
+      '</div>';
+  } else {
+    compatBlock = '<button type="button" class="filters-toggle" style="display:block;margin-bottom:12px" data-act="startQuiz">Take the character quiz to see your compatibility ▸</button>';
+  }
   return (
     '<div class="storyboard" data-act="stop">'+
       '<div class="storyboard-poster"><h6 class="roadmap-poster-eyebrow">Your story</h6><h2 class="roadmap-poster-title">A hero makes their own destiny</h2></div>'+
+      compatBlock+
       '<div class="storyboard-line"></div>'+
       cards+
     '</div>'
@@ -1468,6 +1566,8 @@ function renderSettings(s){
     '<div class="tab-panel">'+
       '<button type="button" class="btn btn-primary" style="margin:8px 0 4px" data-act="startTour">Take a quick tour</button>'+
       '<p class="consent-note" style="margin:0 0 16px">It\'s quick. I can do this all day.</p>'+
+      '<button type="button" class="btn btn-primary" style="margin:0 0 4px" data-act="startQuiz">'+(s.quizResult?'Retake the character quiz':'Which character are you?')+'</button>'+
+      '<p class="consent-note" style="margin:0 0 16px">'+(s.quizResult?('You got: '+esc(CHARACTERS[s.quizResult].name)):'Five questions. No wrong answers, only revealing ones.')+'</p>'+
       '<h6 class="section-label">Account</h6>'+
       accountBlock+
       '<h6 class="section-label">Preferences</h6>'+
@@ -1536,6 +1636,7 @@ function template(s){
     cookieBanner+
     (s.showLegal ? renderLegalModal(s) : '')+
     (s.showGuide ? renderGuideModal() : '')+
+    (s.showQuiz ? renderQuizModal(s) : '')+
     (s.authPrompt ? renderAuthModal() : '')+
     (s.toastMsg ? '<div class="toast" data-act="dismissToast">'+esc(s.toastMsg)+'</div>' : '')+
     (!s.fanNoticeDismissed ? renderFanNoticeModal() : '')
@@ -1562,6 +1663,38 @@ function renderFanNoticeModal(){
         '<p><strong>Marvel for Dummies is an unofficial fan project</strong> — built by a fan, for fans. It isn\'t made, endorsed, or affiliated with Marvel, Disney, or any of the studios behind these movies and shows.</p>'+
         '<p>All character names, titles, artwork and likenesses belong to their respective rights holders. This app just helps you track and talk about them.</p>'+
         '<button type="button" class="btn btn-primary" data-act="dismissFanNotice">Got it</button>'+
+      '</div>'+
+    '</div>'
+  );
+}
+function renderQuizModal(s){
+  var body;
+  if(s.quizResult){
+    var ch = CHARACTERS[s.quizResult];
+    body =
+      '<div class="quiz-result">'+
+        '<h6 class="legal-subhead">You are</h6>'+
+        '<h2 class="quiz-result-name">'+esc(ch.name)+'</h2>'+
+        '<p class="quiz-result-sub">('+esc(ch.title)+')</p>'+
+        '<p style="margin-top:10px">'+esc(ch.desc)+'</p>'+
+        '<button type="button" class="btn btn-primary" style="margin-top:14px" data-act="goToCompatibility">See my compatibility ▸</button>'+
+        '<button type="button" class="zoom-out-link" style="display:block;margin-top:10px" data-act="retakeQuiz">↻ Retake the quiz</button>'+
+      '</div>';
+  } else {
+    var q = QUIZ_QUESTIONS[s.quizStep];
+    body =
+      '<div class="tour-step-count">Question '+(s.quizStep+1)+' of '+QUIZ_QUESTIONS.length+'</div>'+
+      '<h3 style="margin-bottom:14px">'+esc(q.q)+'</h3>'+
+      q.options.map(function(o){
+        return '<button type="button" class="quiz-option" data-act="answerQuiz" data-hero="'+o.hero+'">'+esc(o.text)+'</button>';
+      }).join('');
+  }
+  return (
+    '<div class="legal-modal" data-act="closeQuiz">'+
+      '<div class="legal-card" data-act="stop">'+
+        (!s.quizResult ? '<h3 style="margin-bottom:2px">Which character are you?</h3><p class="about-text" style="margin:0 0 14px">Answer honestly. Or don\'t — see who that makes you.</p>' : '')+
+        body+
+        '<button type="button" class="zoom-out-link" style="display:block;margin-top:16px" data-act="closeQuiz">Close</button>'+
       '</div>'+
     '</div>'
   );
@@ -1696,6 +1829,11 @@ root.addEventListener('click', function(e){
     case 'showLegal': showLegal(); break;
     case 'closeLegal': closeLegal(); break;
     case 'showGuide': showGuide(); break;
+    case 'startQuiz': startQuiz(); break;
+    case 'closeQuiz': closeQuiz(); break;
+    case 'answerQuiz': answerQuiz(el.dataset.hero); break;
+    case 'retakeQuiz': retakeQuiz(); break;
+    case 'goToCompatibility': goToCompatibility(); break;
     case 'startTour': startTour(); break;
     case 'nextTourStep': nextTourStep(); break;
     case 'endTour': endTour(); break;
