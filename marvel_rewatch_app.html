@@ -670,12 +670,12 @@ var THEMES = [
   {id:'hulk', name:'Big Guy', desc:'Green & purple', dots:['#35B02E','#7C24A0']}
 ];
 var CHARACTERS = {
-  ironman:{name:'Tin Can', title:'Iron Man', desc:"You lead with your brain, crack jokes to survive the pressure, and would rather build the solution yourself than wait for someone else to. You care more than you let on.", movies:['iron-man','iron-man-2','iron-man-3','avengers1','civil-war']},
-  spiderman:{name:'Friendly Neighbour', title:'Spider-Man', desc:"You're the one who shows up — for the small stuff and the huge stuff alike. Responsibility isn't a burden to you, it's just what you do, even when nobody's watching.", movies:['homecoming','far-from-home','no-way-home']},
-  cap:{name:"America's Ass", title:'Captain America', desc:"You do the right thing even when it costs you, and you don't need anyone's permission to say so. Loyalty and principle come before convenience, every time.", movies:['cap1','winter-soldier','civil-war','endgame']},
-  thor:{name:'Goldilocks', title:'Thor', desc:"You've got big energy, a bigger heart, and you've learned the hard way that strength means nothing without the people who make it worth having. You laugh loud and love harder.", movies:['thor','thor-dark-world','ragnarok','love-thunder']},
-  widow:{name:"SHIELD's Best Agent", title:'Black Widow', desc:"You keep your cards close, get the job done quietly, and carry more than you show. People underestimate you right up until they don't.", movies:['black-widow','avengers1','winter-soldier','endgame']},
-  hulk:{name:'Big Guy', title:'Hulk', desc:"You feel things at full volume, and you're done apologizing for it. What looks like a temper to everyone else is just you, finally letting it out.", movies:['hulk','avengers1','age-of-ultron','ragnarok']}
+  ironman:{name:'Tin Can', title:'Iron Man', desc:"You lead with your brain, crack jokes to survive the pressure, and would rather build the solution yourself than wait for someone else to. You care more than you let on.", movies:['iron-man','iron-man-2','iron-man-3','avengers1','age-of-ultron','civil-war','homecoming','infinity-war','endgame','far-from-home']},
+  spiderman:{name:'Friendly Neighbour', title:'Spider-Man', desc:"You're the one who shows up — for the small stuff and the huge stuff alike. Responsibility isn't a burden to you, it's just what you do, even when nobody's watching.", movies:['civil-war','homecoming','infinity-war','endgame','far-from-home','no-way-home']},
+  cap:{name:"America's Ass", title:'Captain America', desc:"You do the right thing even when it costs you, and you don't need anyone's permission to say so. Loyalty and principle come before convenience, every time.", movies:['cap1','avengers1','age-of-ultron','winter-soldier','civil-war','infinity-war','endgame']},
+  thor:{name:'Goldilocks', title:'Thor', desc:"You've got big energy, a bigger heart, and you've learned the hard way that strength means nothing without the people who make it worth having. You laugh loud and love harder.", movies:['thor','avengers1','thor-dark-world','age-of-ultron','ragnarok','infinity-war','endgame','love-thunder']},
+  widow:{name:"SHIELD's Best Agent", title:'Black Widow', desc:"You keep your cards close, get the job done quietly, and carry more than you show. People underestimate you right up until they don't.", movies:['avengers1','winter-soldier','age-of-ultron','civil-war','infinity-war','endgame','black-widow']},
+  hulk:{name:'Big Guy', title:'Hulk', desc:"You feel things at full volume, and you're done apologizing for it. What looks like a temper to everyone else is just you, finally letting it out.", movies:['hulk','avengers1','age-of-ultron','ragnarok','infinity-war','endgame']}
 };
 var QUIZ_QUESTIONS = [
   {q:"It's been a brutal week. How do you actually cope?", options:[
@@ -998,11 +998,15 @@ async function checkFriendCompatibility(){
   commit();
 }
 function goToCompatibility(){ state.showQuiz = false; state.tab = 'home'; commit(); }
-function compatibilityPct(heroId, favIds){
+function compatibilityPct(heroId, favIds, quizScores){
   var ch = CHARACTERS[heroId];
-  if(!ch || !favIds.length) return 0;
-  var shared = ch.movies.filter(function(id){ return favIds.indexOf(id) !== -1; }).length;
-  return Math.round((shared / ch.movies.length) * 100);
+  if(!ch) return 0;
+  var shared = favIds.length ? ch.movies.filter(function(id){ return favIds.indexOf(id) !== -1; }).length : 0;
+  var moviePct = ch.movies.length ? (shared / ch.movies.length) * 100 : 0;
+  var totalAnswers = QUIZ_QUESTIONS.length;
+  var heroAnswers = (quizScores && quizScores[heroId]) || 0;
+  var personalityPct = totalAnswers ? (heroAnswers / totalAnswers) * 100 : 0;
+  return Math.round(moviePct * 0.6 + personalityPct * 0.4);
 }
 function startTour(){
   state.tourActive = true; state.tourStep = 0; state.authPrompt = false; state.showLegal = false; state.showGuide = false;
@@ -1403,7 +1407,7 @@ function renderStoryboard(s){
 function renderCompatCard(s, favIds){
   if(s.quizResult){
     var ch = CHARACTERS[s.quizResult];
-    var pct = compatibilityPct(s.quizResult, favIds);
+    var pct = compatibilityPct(s.quizResult, favIds, s.quizScores);
     return (
       '<div class="compat-card">'+
         '<div class="compat-pct">'+pct+'%</div>'+
