@@ -219,8 +219,9 @@ button,input,textarea{font-family:inherit;color:inherit}
 .toast{ position:absolute; left:50%; bottom:calc(env(safe-area-inset-bottom) + 78px); transform:translateX(-50%); z-index:7; max-width:calc(100% - 40px); padding:11px 16px; border-radius:24px; background:var(--text); color:var(--bg); font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:12.5px; font-weight:600; text-align:center; box-shadow:0 8px 24px rgba(0,0,0,.3); cursor:pointer; animation:toastIn .25s cubic-bezier(.2,.9,.3,1) both; }
 
 #tour-overlay{ position:fixed; inset:0; z-index:9500; pointer-events:none; }
-.tour-ring{ position:fixed; border:3px solid var(--accent); border-radius:14px; box-shadow:0 0 0 4000px rgba(0,0,0,.55); pointer-events:none; transition:left .25s ease, top .25s ease, width .25s ease, height .25s ease; animation:tourPulse 1.6s ease-in-out infinite; }
-@keyframes tourPulse{ 0%,100%{ box-shadow:0 0 0 4000px rgba(0,0,0,.55), 0 0 0 0 var(--accent-soft); } 50%{ box-shadow:0 0 0 4000px rgba(0,0,0,.55), 0 0 0 8px var(--accent-soft); } }
+.tour-backdrop{ position:fixed; inset:0; background:rgba(0,0,0,.55); pointer-events:none; }
+.tour-ring{ position:fixed; border:3px solid var(--accent); border-radius:14px; box-shadow:0 0 0 4px var(--accent-soft); pointer-events:none; transition:left .25s ease, top .25s ease, width .25s ease, height .25s ease; animation:tourPulse 1.6s ease-in-out infinite; }
+@keyframes tourPulse{ 0%,100%{ box-shadow:0 0 0 4px var(--accent-soft); } 50%{ box-shadow:0 0 0 10px var(--accent-soft); } }
 .tour-tip{ position:fixed; background:var(--surface); color:var(--text); border:1px solid var(--divider); padding:14px 16px; border-radius:14px; box-shadow:0 16px 40px rgba(0,0,0,.45); pointer-events:auto; font-size:13px; line-height:1.5; animation:fadeSlide .2s ease both; }
 .tour-tip-arrow{ position:absolute; width:14px; height:14px; background:var(--surface); border:1px solid var(--divider); }
 .tour-tip-arrow-up{ top:-8px; transform:translateX(-50%) rotate(45deg); border-bottom:0; border-right:0; }
@@ -882,14 +883,19 @@ function loadState(){
 var state = loadState();
 function persist(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){} }
 function commit(){ persist(); render(); }
+var debounceTimers = {};
+function commitDebounced(key, delay){
+  clearTimeout(debounceTimers[key]);
+  debounceTimers[key] = setTimeout(function(){ commit(); }, delay || 150);
+}
 
 /* ---------- actions ---------- */
 function setTab(t){ state.tab=t; state.scrolled=false; state.roadmapFocus=null; commit(); }
 function setSection(v){ state.section=v; commit(); }
 function setViewMode(v){ state.viewMode=v; state.roadmapFocus=null; commit(); }
-function setSearch(v){ state.search=v; commit(); }
+function setSearch(v){ state.search=v; commitDebounced('search'); }
 function toggleFilters(){ state.filtersOpen = !state.filtersOpen; commit(); }
-function setTheorySearch(v){ state.theorySearch=v; commit(); }
+function setTheorySearch(v){ state.theorySearch=v; commitDebounced('theorySearch'); }
 function setTheorySort(v){ state.theorySort=v; commit(); }
 function toggleEra(id){
   var opening = state.expandedEra !== id;
@@ -916,7 +922,7 @@ function displayNameFor(){
   if(state.displayName) return state.displayName;
   return (state.user.user_metadata && (state.user.user_metadata.full_name || state.user.user_metadata.name)) || state.user.email || 'Fan';
 }
-function setDisplayNameDraft(v){ state.displayNameDraft=v; commit(); }
+function setDisplayNameDraft(v){ state.displayNameDraft=v; commitDebounced('displayNameDraft'); }
 function saveDisplayName(){
   var name = state.displayNameDraft.trim();
   if(!name) return;
@@ -1075,6 +1081,7 @@ function positionTourOverlay(retriesLeft){
   var ringH = isIcon ? ringSide : rect.height + pad*2;
   var ringRadius = isIcon ? '50%' : '14px';
   overlay.innerHTML =
+    '<div class="tour-backdrop"></div>'+
     '<div class="tour-ring" style="left:'+(cx-ringW/2)+'px;top:'+(cy-ringH/2)+'px;width:'+ringW+'px;height:'+ringH+'px;border-radius:'+ringRadius+';"></div>'+
     '<div class="tour-tip" style="top:'+tipTop+'px;left:'+tipLeft+'px;width:'+tipWidth+'px;">'+
       (placeBelow ? '<div class="tour-tip-arrow tour-tip-arrow-up" style="left:'+arrowLeft+'px"></div>' : '')+
@@ -1121,7 +1128,7 @@ function vote(id, type){
     else sb.from('votes').upsert({user_id:state.user.id, theory_id:id, vote_type:next}, {onConflict:'user_id,theory_id'}).then(function(){});
   }
 }
-function setCommentDraft(id, v){ state.commentDrafts[id]=v; commit(); }
+function setCommentDraft(id, v){ state.commentDrafts[id]=v; commitDebounced('commentDraft:'+id); }
 function addComment(id){
   if(!requireAuth()) return;
   var text = (state.commentDrafts[id]||'').trim();
@@ -1149,8 +1156,8 @@ function toggleNewTheoryForm(){
   state.showNewTheory = !state.showNewTheory;
   commit();
 }
-function setNewTheoryTitle(v){ state.newTheoryTitle=v; commit(); }
-function setNewTheoryBody(v){ state.newTheoryBody=v; commit(); }
+function setNewTheoryTitle(v){ state.newTheoryTitle=v; commitDebounced('newTheoryTitle'); }
+function setNewTheoryBody(v){ state.newTheoryBody=v; commitDebounced('newTheoryBody'); }
 function submitTheory(){
   if(!requireAuth()) return;
   var title = state.newTheoryTitle.trim(), body = state.newTheoryBody.trim();
