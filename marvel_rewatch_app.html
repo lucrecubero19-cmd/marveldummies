@@ -678,45 +678,45 @@ var CHARACTERS = {
   hulk:{name:'Big Guy', title:'Hulk', desc:"You feel things at full volume, and you're done apologizing for it. What looks like a temper to everyone else is just you, finally letting it out.", movies:['hulk','avengers1','age-of-ultron','ragnarok']}
 };
 var QUIZ_QUESTIONS = [
-  {q:"A mission just went sideways. Your first move?", options:[
-    {text:'Improvise a fix with whatever tech is on hand', hero:'ironman'},
-    {text:'Web-swing in and figure it out as you go', hero:'spiderman'},
-    {text:'Rally everyone and hold the line', hero:'cap'},
-    {text:'Hit it harder', hero:'thor'},
-    {text:'Already three steps ahead, quietly', hero:'widow'},
-    {text:'Get angry. Very, very angry', hero:'hulk'}
+  {q:"It's been a brutal week. How do you actually cope?", options:[
+    {text:'Disappear into a project until it\'s perfect', hero:'ironman'},
+    {text:'Keep saying yes to everyone who needs you, sleep later', hero:'spiderman'},
+    {text:'Make a plan and stick to it, no exceptions', hero:'cap'},
+    {text:'Vent loudly to whoever will listen, then it\'s gone', hero:'thor'},
+    {text:'Handle it alone. Tell absolutely no one', hero:'widow'},
+    {text:'Bottle it up until it all comes out at once', hero:'hulk'}
   ]},
-  {q:"What's your idea of a good time?", options:[
-    {text:'Building something nobody thought was possible', hero:'ironman'},
-    {text:'Hanging out with friends after class', hero:'spiderman'},
-    {text:'A quiet night in, up early tomorrow', hero:'cap'},
-    {text:'A feast, a fight, a good story after', hero:'thor'},
-    {text:'Somewhere no one can find you', hero:'widow'},
-    {text:'Somewhere quiet, on your own terms', hero:'hulk'}
+  {q:"Your friend group is in the middle of an argument. What's your move?", options:[
+    {text:'Crack a joke to cut the tension, then quietly fix the real issue', hero:'ironman'},
+    {text:'Try to keep everyone happy, even if it wears you out', hero:'spiderman'},
+    {text:'Say what you actually think is right, whether people like it or not', hero:'cap'},
+    {text:'Loudly remind everyone you all still love each other', hero:'thor'},
+    {text:'Stay out of it — deal with the fallout privately, later', hero:'widow'},
+    {text:'Go quiet. Say nothing until you really can\'t hold it in', hero:'hulk'}
   ]},
-  {q:"Someone on your team messes up badly. You...", options:[
-    {text:'Roast them a little, then help fix it', hero:'ironman'},
-    {text:'Reassure them — everyone messes up', hero:'spiderman'},
-    {text:'Tell them straight, then back them completely', hero:'cap'},
-    {text:'Laugh it off, mistakes happen', hero:'thor'},
-    {text:'Quietly clean it up before anyone notices', hero:'widow'},
-    {text:'Need a minute before you can talk about it', hero:'hulk'}
+  {q:"Pick the vacation that actually sounds like you.", options:[
+    {text:'Somewhere with good wifi and something to tinker with', hero:'ironman'},
+    {text:'Wherever your people are already going', hero:'spiderman'},
+    {text:'Somewhere with a clear itinerary and an actual point', hero:'cap'},
+    {text:'Somewhere loud, social, and a little reckless', hero:'thor'},
+    {text:'Somewhere nobody can reach you', hero:'widow'},
+    {text:'Somewhere alone, far from absolutely everyone', hero:'hulk'}
   ]},
-  {q:"Pick a weakness you'll actually admit to.", options:[
-    {text:'Ego', hero:'ironman'},
-    {text:'Taking on too much at once', hero:'spiderman'},
-    {text:'Stubbornness', hero:'cap'},
-    {text:'Overconfidence', hero:'thor'},
-    {text:'Trusting people too slowly', hero:'widow'},
-    {text:'A short fuse', hero:'hulk'}
+  {q:"How do you show someone you care, honestly?", options:[
+    {text:'Show up with a fix for a problem they never even mentioned', hero:'ironman'},
+    {text:'Just... always being there. Every single time', hero:'spiderman'},
+    {text:'Loyalty — unglamorous, and completely non-negotiable', hero:'cap'},
+    {text:'Loud, over-the-top, impossible-to-miss affection', hero:'thor'},
+    {text:'Small acts nobody else would even notice', hero:'widow'},
+    {text:'Letting them see the real you at all, honestly', hero:'hulk'}
   ]},
-  {q:"What actually motivates you?", options:[
-    {text:'Proving it can be done', hero:'ironman'},
-    {text:'Protecting the people who can\'t protect themselves', hero:'spiderman'},
-    {text:'Doing right, no matter what it costs', hero:'cap'},
-    {text:'Earning the people you love', hero:'thor'},
-    {text:'Making things right, quietly', hero:'widow'},
-    {text:'Being understood for once', hero:'hulk'}
+  {q:"What do people usually get wrong about you?", options:[
+    {text:'That the confidence is the whole story', hero:'ironman'},
+    {text:'That you don\'t have limits — you do, you just hide them', hero:'spiderman'},
+    {text:'That you\'re inflexible instead of just principled', hero:'cap'},
+    {text:'That you\'re not the smart one in the room', hero:'thor'},
+    {text:'That you don\'t feel things as hard as everyone else', hero:'widow'},
+    {text:'That you\'re the dangerous one', hero:'hulk'}
   ]}
 ];
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
@@ -1374,26 +1374,28 @@ function renderStoryboard(s){
       '</div>'
     );
   }).join('');
-  var compatBlock;
-  if(s.quizResult){
-    var ch = CHARACTERS[s.quizResult];
-    var pct = compatibilityPct(s.quizResult, picks.map(function(it){ return it.id; }));
-    compatBlock =
-      '<div class="compat-card">'+
-        '<div class="compat-pct">'+pct+'%</div>'+
-        '<div class="compat-label">compatible with <strong>'+esc(ch.name)+'</strong> ('+esc(ch.title)+')</div>'+
-      '</div>';
-  } else {
-    compatBlock = '<button type="button" class="filters-toggle" style="display:block;margin-bottom:12px" data-act="startQuiz">Take the character quiz to see your compatibility ▸</button>';
-  }
   return (
     '<div class="storyboard" data-act="stop">'+
       '<div class="storyboard-poster"><h6 class="roadmap-poster-eyebrow">Your story</h6><h2 class="roadmap-poster-title">A hero makes their own destiny</h2></div>'+
-      compatBlock+
       '<div class="storyboard-line"></div>'+
       cards+
     '</div>'
   );
+}
+function renderCompatCard(s, favIds){
+  if(s.quizResult){
+    var ch = CHARACTERS[s.quizResult];
+    var pct = compatibilityPct(s.quizResult, favIds);
+    return (
+      '<div class="compat-card">'+
+        '<div class="compat-pct">'+pct+'%</div>'+
+        '<div class="compat-label">compatible with <strong>'+esc(ch.name)+'</strong> ('+esc(ch.title)+')</div>'+
+        (favIds.length ? '' : '<div class="compat-label" style="margin-top:4px;opacity:.75">Favorite some titles in Timeline to raise your score.</div>')+
+        '<button type="button" class="zoom-out-link" style="margin-top:8px" data-act="startQuiz">↻ Retake the quiz</button>'+
+      '</div>'
+    );
+  }
+  return '<button type="button" class="filters-toggle" style="display:block;margin-bottom:12px" data-act="startQuiz">Take the character quiz to see your compatibility ▸</button>';
 }
 function renderHomeHeader(){
   return '<h6 class="eyebrow">Your Progress</h6><h1 class="title">Rewatch</h1>';
@@ -1450,7 +1452,9 @@ function renderHome(s){
       '<div class="stat-row"><div class="stat-pct">'+pct+'%</div><div class="stat-sub">watched<br>'+watchedCount+' of '+totalCount+' titles</div></div>'+
       '<p class="stat-caption">'+fmtMin(watchedMin)+' watched · '+fmtMin(totalMin-watchedMin)+' left</p>'+
       nextSection+
-      '<h6 class="section-label">Your favorites</h6>'+favoritesBlock+
+      '<h6 class="section-label">Your favorites</h6>'+
+      renderCompatCard(s, favorites.map(function(f){ return f.id; }))+
+      favoritesBlock+
       '<h6 class="section-label">Progress by era</h6>'+eraBars+
       '<h6 class="section-label">Recently watched</h6>'+recentBlock+
     '</div>'
