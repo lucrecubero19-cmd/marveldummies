@@ -771,9 +771,9 @@ function answerQuiz(hero){
 }
 function retakeQuiz(){ state.quizStep = 0; state.quizScores = {}; state.quizResult = null; commit(); }
 function matchThemeToQuiz(){ if(state.quizResult) setTheme(state.quizResult); }
-function setFriendNameDraft(v){ state.friendNameDraft = v; commit(); }
 async function checkFriendCompatibility(){
-  var name = state.friendNameDraft.trim();
+  var inputEl = document.getElementById('friend-name-input');
+  var name = inputEl ? inputEl.value.trim() : '';
   if(!name){ return; }
   if(!requireAuth()) return;
   if(!sb){ return; }
@@ -841,7 +841,9 @@ function positionTourOverlay(retriesLeft){
     else nextTourStep();
     return;
   }
-  if(target.scrollIntoView) target.scrollIntoView({block:'center', behavior:'auto'});
+  var preRect = target.getBoundingClientRect();
+  var alreadyVisible = preRect.top >= 0 && preRect.bottom <= window.innerHeight;
+  if(!alreadyVisible && target.scrollIntoView) target.scrollIntoView({block:'center', behavior:'auto'});
   var rect = target.getBoundingClientRect();
   var overlay = document.getElementById('tour-overlay');
   if(!overlay){
@@ -1219,7 +1221,7 @@ function renderFriendCompat(s){
   } else if(s.friendCheckResult){
     var r = s.friendCheckResult;
     if(r.error){
-      resultBlock = '<p class="about-text" style="padding-top:0">Something went wrong — try again.</p>';
+      resultBlock = '<p class="about-text" style="padding-top:0">Something went wrong'+(r.detail?(': '+esc(r.detail)):'')+' — try again.</p>';
     } else if(!r.found){
       resultBlock = '<p class="about-text" style="padding-top:0">No one\'s using that display name yet.</p>';
     } else if(r.self){
@@ -1237,7 +1239,7 @@ function renderFriendCompat(s){
     '<div class="friend-compat">'+
       '<h6 class="section-label">Compare with a friend</h6>'+
       '<div style="display:flex;gap:8px;margin-bottom:10px">'+
-        '<input class="field-input" type="text" placeholder="Their display name" value="'+esc(s.friendNameDraft)+'" data-bind="friendName" data-focus-id="friend-name">'+
+        '<input class="field-input" id="friend-name-input" type="text" placeholder="Their display name" data-focus-id="friend-name">'+
         '<button type="button" class="btn" style="width:auto" data-act="checkFriendCompatibility">Check</button>'+
       '</div>'+
       resultBlock+
@@ -1741,10 +1743,10 @@ root.addEventListener('input', function(e){
   else if(bind === 'theoryBody'){ setNewTheoryBody(t.value); }
   else if(bind.indexOf('comment:') === 0){ setCommentDraft(bind.slice(8), t.value); }
   else if(bind === 'displayName'){ setDisplayNameDraft(t.value); }
-  else if(bind === 'friendName'){ setFriendNameDraft(t.value); }
 });
 /* 'scroll' doesn't bubble, so listen on the capture phase to catch it from .app-content */
 root.addEventListener('scroll', function(e){
+  if(state.tourActive) return;
   if(!e.target.classList || !e.target.classList.contains('app-content')) return;
   var st = e.target.scrollTop;
   if(st > 24 && !state.scrolled){ state.scrolled = true; commit(); }
