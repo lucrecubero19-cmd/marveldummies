@@ -867,6 +867,7 @@ function defaultState(){
     cookieNoticeDismissed:false, showLegal:false, fanNoticeDismissed:false,
     showGuide:false, guideSeen:false, tourActive:false, tourStep:0, autoTourShown:false,
     showQuiz:false, quizStep:0, quizScores:null, quizResult:null,
+    friendNameDraft:'', friendCheckLoading:false, friendCheckResult:null,
     user:null, authPrompt:false, remoteComments:{}, showStoryboard:false,
     displayName:'', displayNameDraft:'', toastMsg:null
   };
@@ -979,6 +980,23 @@ function answerQuiz(hero){
   commit();
 }
 function retakeQuiz(){ state.quizStep = 0; state.quizScores = {}; state.quizResult = null; commit(); }
+function matchThemeToQuiz(){ if(state.quizResult) setTheme(state.quizResult); }
+function setFriendNameDraft(v){ state.friendNameDraft = v; commit(); }
+async function checkFriendCompatibility(){
+  var name = state.friendNameDraft.trim();
+  if(!name){ return; }
+  if(!requireAuth()) return;
+  if(!sb){ return; }
+  state.friendCheckLoading = true; state.friendCheckResult = null; commit();
+  try{
+    var res = await sb.rpc('get_compatibility', {other_name: name});
+    state.friendCheckResult = res.error ? {found:false, error:true} : res.data;
+  }catch(e){
+    state.friendCheckResult = {found:false, error:true};
+  }
+  state.friendCheckLoading = false;
+  commit();
+}
 function goToCompatibility(){ state.showQuiz = false; state.tab = 'home'; commit(); }
 function compatibilityPct(heroId, favIds){
   var ch = CHARACTERS[heroId];
@@ -1397,6 +1415,41 @@ function renderCompatCard(s, favIds){
   }
   return '<button type="button" class="filters-toggle" style="display:block;margin-bottom:12px" data-act="startQuiz">Take the character quiz to see your compatibility ▸</button>';
 }
+function renderFriendCompat(s){
+  if(!s.user){
+    return '<div class="friend-compat"><p class="about-text" style="padding-top:0">Sign in to compare your taste with a friend\'s.</p></div>';
+  }
+  var resultBlock = '';
+  if(s.friendCheckLoading){
+    resultBlock = '<p class="about-text" style="padding-top:0">Checking…</p>';
+  } else if(s.friendCheckResult){
+    var r = s.friendCheckResult;
+    if(r.error){
+      resultBlock = '<p class="about-text" style="padding-top:0">Something went wrong — try again.</p>';
+    } else if(!r.found){
+      resultBlock = '<p class="about-text" style="padding-top:0">No one\'s using that display name yet.</p>';
+    } else if(r.self){
+      resultBlock = '<p class="about-text" style="padding-top:0">That\'s you. Try a friend\'s name instead.</p>';
+    } else {
+      resultBlock =
+        '<div class="compat-card">'+
+          '<div class="compat-pct">'+r.pct+'%</div>'+
+          '<div class="compat-label">compatible with <strong>'+esc(r.name)+'</strong></div>'+
+          (r.quizMatch ? '<div class="compat-label" style="margin-top:4px">Same character on the quiz, too.</div>' : '')+
+        '</div>';
+    }
+  }
+  return (
+    '<div class="friend-compat">'+
+      '<h6 class="section-label">Compare with a friend</h6>'+
+      '<div style="display:flex;gap:8px;margin-bottom:10px">'+
+        '<input class="field-input" type="text" placeholder="Their display name" value="'+esc(s.friendNameDraft)+'" data-bind="friendName" data-focus-id="friend-name">'+
+        '<button type="button" class="btn" style="width:auto" data-act="checkFriendCompatibility">Check</button>'+
+      '</div>'+
+      resultBlock+
+    '</div>'
+  );
+}
 function renderHomeHeader(){
   return '<h6 class="eyebrow">Your Progress</h6><h1 class="title">Rewatch</h1>';
 }
@@ -1454,6 +1507,7 @@ function renderHome(s){
       nextSection+
       '<h6 class="section-label">Your favorites</h6>'+
       renderCompatCard(s, favorites.map(function(f){ return f.id; }))+
+      renderFriendCompat(s)+
       favoritesBlock+
       '<h6 class="section-label">Progress by era</h6>'+eraBars+
       '<h6 class="section-label">Recently watched</h6>'+recentBlock+
@@ -1681,7 +1735,10 @@ function renderQuizModal(s){
         '<h2 class="quiz-result-name">'+esc(ch.name)+'</h2>'+
         '<p class="quiz-result-sub">('+esc(ch.title)+')</p>'+
         '<p style="margin-top:10px">'+esc(ch.desc)+'</p>'+
-        '<button type="button" class="btn btn-primary" style="margin-top:14px" data-act="goToCompatibility">See my compatibility ▸</button>'+
+        (s.theme !== s.quizResult
+          ? '<button type="button" class="btn" style="margin-top:14px" data-act="matchThemeToQuiz">🎨 Switch the app to '+esc(ch.name)+'\'s colors</button>'
+          : '<p class="consent-note" style="margin-top:10px">Already running '+esc(ch.name)+'\'s colors.</p>')+
+        '<button type="button" class="btn btn-primary" style="margin-top:8px" data-act="goToCompatibility">See my compatibility ▸</button>'+
         '<button type="button" class="zoom-out-link" style="display:block;margin-top:10px" data-act="retakeQuiz">↻ Retake the quiz</button>'+
       '</div>';
   } else {
@@ -1837,6 +1894,7 @@ root.addEventListener('click', function(e){
     case 'closeQuiz': closeQuiz(); break;
     case 'answerQuiz': answerQuiz(el.dataset.hero); break;
     case 'retakeQuiz': retakeQuiz(); break;
+    case 'matchThemeToQuiz': matchThemeToQuiz(); break;
     case 'goToCompatibility': goToCompatibility(); break;
     case 'startTour': startTour(); break;
     case 'nextTourStep': nextTourStep(); break;
@@ -1855,6 +1913,7 @@ root.addEventListener('click', function(e){
     case 'toggleFavorite': toggleFavorite(id); break;
     case 'toggleStoryboard': toggleStoryboard(); break;
     case 'saveDisplayName': saveDisplayName(); break;
+    case 'checkFriendCompatibility': checkFriendCompatibility(); break;
     case 'dismissToast': dismissToast(); break;
     case 'setRating': setRating(id, Number(el.dataset.n)); break;
     case 'toggleTheoryOpen': toggleTheoryOpen(id); break;
@@ -1888,6 +1947,7 @@ root.addEventListener('input', function(e){
   else if(bind === 'theoryBody'){ setNewTheoryBody(t.value); }
   else if(bind.indexOf('comment:') === 0){ setCommentDraft(bind.slice(8), t.value); }
   else if(bind === 'displayName'){ setDisplayNameDraft(t.value); }
+  else if(bind === 'friendName'){ setFriendNameDraft(t.value); }
 });
 /* 'scroll' doesn't bubble, so listen on the capture phase to catch it from .app-content */
 root.addEventListener('scroll', function(e){
