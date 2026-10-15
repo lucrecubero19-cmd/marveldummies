@@ -10,10 +10,22 @@
 (function(){
   try{
     var raw = localStorage.getItem('mcuRewatch.v1');
-    var theme = null;
-    if(raw){ var parsed = JSON.parse(raw); theme = parsed && parsed.theme; }
+    var theme = null, parsed = null;
+    if(raw){ parsed = JSON.parse(raw); theme = parsed && parsed.theme; }
     if(!theme){ theme = 'ironman'; }
     document.documentElement.setAttribute('data-app-theme', theme);
+    if(theme === 'custom' && parsed){
+      var main = parsed.customMain || '#7c24a0', sec = parsed.customSecondary || '#e0529c';
+      function lum(hex){ var h=hex.replace('#',''); if(h.length===3) h=h.split('').map(function(c){return c+c;}).join(''); var r=parseInt(h.substr(0,2),16)/255,g=parseInt(h.substr(2,2),16)/255,b=parseInt(h.substr(4,2),16)/255; function lin(c){return c<=0.03928?c/12.92:Math.pow((c+0.055)/1.055,2.4);} return 0.2126*lin(r)+0.7152*lin(g)+0.0722*lin(b); }
+      function rgba(hex,a){ var h=hex.replace('#',''); if(h.length===3) h=h.split('').map(function(c){return c+c;}).join(''); return 'rgba('+parseInt(h.substr(0,2),16)+','+parseInt(h.substr(2,2),16)+','+parseInt(h.substr(4,2),16)+','+a+')'; }
+      var s = document.documentElement.style;
+      s.setProperty('--accent', main);
+      s.setProperty('--accent-ink', lum(main) > 0.42 ? '#141516' : '#ffffff');
+      s.setProperty('--accent-soft', rgba(main,.2));
+      s.setProperty('--heat', sec);
+      s.setProperty('--tag-series-bg', rgba(sec,.22));
+      s.setProperty('--tag-series-fg', sec);
+    }
   }catch(e){ document.documentElement.setAttribute('data-app-theme','ironman'); }
 })();
 </script>
@@ -151,6 +163,22 @@
   --tag-movie-bg:var(--accent-soft); --tag-movie-fg:var(--accent);
   --tag-series-bg:rgba(27,74,23,.28); --tag-series-fg:#0d2b0a;
   --tag-special-bg:rgba(13,43,10,.12); --tag-special-fg:var(--text-dim);
+  --tag-short-fg:var(--accent);
+}
+/* Create Your Own Superhero — neutral base; --accent/--heat/etc are set inline by JS per pick */
+:root[data-app-theme="custom"]{
+  --bg:#15171A; --bg-deep:#0C0D0F; --surface:#1E2124; --surface-2:#191B1E;
+  --text:#F2F3F1; --text-dim:rgba(242,243,241,.68); --text-faint:rgba(242,243,241,.44);
+  --accent:#7C24A0; --accent-ink:#ffffff; --accent-soft:rgba(124,36,160,.2);
+  --heat:#e0529c;
+  --divider:rgba(242,243,241,.16);
+  --danger-text:#ffb9b9; --danger-border:rgba(255,185,185,.45);
+  --chip-radius:999px; --card-radius:3px;
+  --halftone-a:.14;
+  --shadow:0 20px 50px rgba(0,0,0,.4);
+  --tag-movie-bg:var(--accent-soft); --tag-movie-fg:var(--accent);
+  --tag-series-bg:rgba(224,82,156,.22); --tag-series-fg:#e0529c;
+  --tag-special-bg:rgba(242,243,241,.10); --tag-special-fg:var(--text-dim);
   --tag-short-fg:var(--accent);
 }
 
@@ -409,6 +437,10 @@ button,input,textarea{font-family:inherit;color:inherit}
 .theme-options{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px; }
 .theme-swatch{ padding:12px; border-radius:var(--card-radius); border:1.5px solid var(--divider); cursor:pointer; text-align:left; background:none; color:inherit; font:inherit; }
 .theme-swatch.is-on{ border-color:var(--accent); }
+.custom-swatch-row{ display:flex; flex-wrap:wrap; gap:9px; }
+.custom-swatch{ width:30px; height:30px; border-radius:50%; border:2.5px solid transparent; box-shadow:inset 0 0 0 1px rgba(0,0,0,.15); cursor:pointer; padding:0; }
+.custom-swatch.is-on{ border-color:var(--text); box-shadow:0 0 0 2px var(--bg), 0 0 0 4px var(--text), inset 0 0 0 1px rgba(0,0,0,.15); }
+.custom-preview{ font-size:12.5px; font-weight:600; color:var(--accent); padding:10px 12px; border-radius:var(--card-radius); border:1px solid var(--accent); background:var(--accent-soft); }
 .swatch-dots{ display:flex; gap:5px; margin-bottom:8px; }
 .swatch-dot{ width:14px; height:14px; border-radius:50%; }
 .swatch-name{ font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; font-size:12.5px; font-weight:700; display:block; }
@@ -670,6 +702,47 @@ var THEMES = [
   {id:'widow', name:"SHIELD's Best Agent", desc:'Red & black', dots:['#101010','#ff0000']},
   {id:'hulk', name:'Big Guy', desc:'Green & purple', dots:['#35B02E','#7C24A0']}
 ];
+var CUSTOM_PALETTE = [
+  {id:'crimson', name:'Crimson', hex:'#a01623'},
+  {id:'gold', name:'Gold', hex:'#ffcb05'},
+  {id:'midnightblue', name:'Midnight Blue', hex:'#0b1440'},
+  {id:'oldglory', name:"Old Glory Red", hex:'#b31942'},
+  {id:'storm', name:'Storm Grey', hex:'#3a3a40'},
+  {id:'void', name:'Void Black', hex:'#101010'},
+  {id:'heroRed', name:'Hero Red', hex:'#ff0000'},
+  {id:'vitality', name:'Vitality Green', hex:'#35b02e'},
+  {id:'pink', name:'Pink', hex:'#e0529c'},
+  {id:'purple', name:'Purple', hex:'#7c24a0'},
+  {id:'midnightgreen', name:'Midnight Green', hex:'#004953'},
+  {id:'bone', name:'Bone White', hex:'#f2f3f1'}
+];
+function relativeLuminance(hex){
+  var h = hex.replace('#','');
+  if(h.length===3) h = h.split('').map(function(c){return c+c;}).join('');
+  var r = parseInt(h.substr(0,2),16)/255, g = parseInt(h.substr(2,2),16)/255, b = parseInt(h.substr(4,2),16)/255;
+  function lin(c){ return c<=0.03928 ? c/12.92 : Math.pow((c+0.055)/1.055, 2.4); }
+  return 0.2126*lin(r) + 0.7152*lin(g) + 0.0722*lin(b);
+}
+function hexToRgba(hex, alpha){
+  var h = hex.replace('#','');
+  if(h.length===3) h = h.split('').map(function(c){return c+c;}).join('');
+  var r = parseInt(h.substr(0,2),16), g = parseInt(h.substr(2,2),16), b = parseInt(h.substr(4,2),16);
+  return 'rgba('+r+','+g+','+b+','+alpha+')';
+}
+function applyCustomThemeVars(main, secondary){
+  var root = document.documentElement.style;
+  var mainInk = relativeLuminance(main) > 0.42 ? '#141516' : '#ffffff';
+  root.setProperty('--accent', main);
+  root.setProperty('--accent-ink', mainInk);
+  root.setProperty('--accent-soft', hexToRgba(main, .2));
+  root.setProperty('--heat', secondary);
+  root.setProperty('--tag-series-bg', hexToRgba(secondary, .22));
+  root.setProperty('--tag-series-fg', secondary);
+}
+function clearCustomThemeVars(){
+  var root = document.documentElement.style;
+  ['--accent','--accent-ink','--accent-soft','--heat','--tag-series-bg','--tag-series-fg'].forEach(function(p){ root.removeProperty(p); });
+}
 var CHARACTERS = {
   ironman:{name:'Tin Can', title:'Iron Man', desc:"You lead with your brain, crack jokes to survive the pressure, and would rather build the solution yourself than wait for someone else to. You care more than you let on.", movies:['iron-man','iron-man-2','iron-man-3','avengers1','age-of-ultron','civil-war','homecoming','infinity-war','endgame','far-from-home']},
   spiderman:{name:'Friendly Neighbour', title:'Spider-Man', desc:"You're the one who shows up — for the small stuff and the huge stuff alike. Responsibility isn't a burden to you, it's just what you do, even when nobody's watching.", movies:['civil-war','homecoming','infinity-war','endgame','far-from-home','no-way-home']},
@@ -868,6 +941,7 @@ function defaultState(){
     cookieNoticeDismissed:false, showLegal:false, fanNoticeDismissed:false,
     showGuide:false, guideSeen:false, tourActive:false, tourStep:0, autoTourShown:false,
     showQuiz:false, quizStep:0, quizScores:null, quizResult:null,
+    customMain:'#7c24a0', customSecondary:'#e0529c',
     friendNameDraft:'', friendCheckLoading:false, friendCheckResult:null,
     user:null, authPrompt:false, remoteComments:{}, showStoryboard:false,
     displayName:'', displayNameDraft:'', toastMsg:null
@@ -987,6 +1061,12 @@ function answerQuiz(hero){
 }
 function retakeQuiz(){ state.quizStep = 0; state.quizScores = {}; state.quizResult = null; commit(); }
 function matchThemeToQuiz(){ if(state.quizResult) setTheme(state.quizResult); }
+function applyCustomTheme(){
+  state.theme = 'custom';
+  document.documentElement.setAttribute('data-app-theme', 'custom');
+  applyCustomThemeVars(state.customMain, state.customSecondary);
+  commit();
+}
 async function checkFriendCompatibility(){
   var inputEl = document.getElementById('friend-name-input');
   var name = inputEl ? inputEl.value.trim() : '';
@@ -1106,7 +1186,26 @@ function focusRoadmapItem(id){
     if(el && el.scrollIntoView) el.scrollIntoView({block:'nearest', behavior:'smooth'});
   }
 }
-function setTheme(t){ state.theme = t; document.documentElement.setAttribute('data-app-theme', t); commit(); }
+function setTheme(t){
+  state.theme = t;
+  if(t !== 'custom') clearCustomThemeVars();
+  document.documentElement.setAttribute('data-app-theme', t);
+  commit();
+}
+function setCustomMain(hex){
+  state.customMain = hex;
+  state.theme = 'custom';
+  document.documentElement.setAttribute('data-app-theme', 'custom');
+  applyCustomThemeVars(state.customMain, state.customSecondary);
+  commit();
+}
+function setCustomSecondary(hex){
+  state.customSecondary = hex;
+  state.theme = 'custom';
+  document.documentElement.setAttribute('data-app-theme', 'custom');
+  applyCustomThemeVars(state.customMain, state.customSecondary);
+  commit();
+}
 function resetProgress(){ state.watched={}; state.ratings={}; state.watchedOrder=[]; state.favorites={}; state.favoriteOrder=[]; commit(); }
 
 function toggleTheoryOpen(id){ state.theoryOpen[id] = !state.theoryOpen[id]; commit(); }
@@ -1616,6 +1715,27 @@ function renderTheories(s){
 }
 
 /* ---------- render: settings ---------- */
+function renderCustomThemeBuilder(s){
+  var isCustom = s.theme === 'custom';
+  function swatchRow(selected, act){
+    return CUSTOM_PALETTE.map(function(c){
+      return '<button type="button" class="custom-swatch'+(selected===c.hex?' is-on':'')+'" style="background:'+c.hex+'" title="'+esc(c.name)+'" data-act="'+act+'" data-hex="'+c.hex+'"></button>';
+    }).join('');
+  }
+  return (
+    '<div class="theme-row" style="margin-top:18px;padding-top:16px;border-top:1px dashed var(--divider)">'+
+      '<span class="pref-label">Create Your Own Superhero</span>'+
+      '<p class="caption" style="margin:2px 0 10px">Pick a main color and a secondary color — build a palette nobody else has.</p>'+
+      '<span class="legal-subhead" style="margin:0 0 6px">Main color</span>'+
+      '<div class="custom-swatch-row">'+swatchRow(s.customMain, 'setCustomMain')+'</div>'+
+      '<span class="legal-subhead" style="margin:14px 0 6px">Secondary color</span>'+
+      '<div class="custom-swatch-row">'+swatchRow(s.customSecondary, 'setCustomSecondary')+'</div>'+
+      (isCustom
+        ? '<div class="custom-preview is-on" style="margin-top:14px">Your Superhero is active — this is how the app looks now.</div>'
+        : '<button type="button" class="btn" style="margin-top:14px" data-act="applyCustomTheme">Use my colors</button>')+
+    '</div>'
+  );
+}
 function renderSettingsHeader(){
   return '<h1 class="title">Settings</h1>';
 }
@@ -1660,6 +1780,7 @@ function renderSettings(s){
           }).join('')+
         '</div>'+
       '</div>'+
+      renderCustomThemeBuilder(s)+
       '<h6 class="section-label">Data</h6>'+
       '<div style="padding:12px 0;border-top:1px solid var(--divider)">'+
         '<button type="button" class="btn btn-danger" data-act="resetProgress">Reset all progress</button>'+
@@ -1908,6 +2029,9 @@ root.addEventListener('click', function(e){
     case 'answerQuiz': answerQuiz(el.dataset.hero); break;
     case 'retakeQuiz': retakeQuiz(); break;
     case 'matchThemeToQuiz': matchThemeToQuiz(); break;
+    case 'setCustomMain': setCustomMain(el.dataset.hex); break;
+    case 'setCustomSecondary': setCustomSecondary(el.dataset.hex); break;
+    case 'applyCustomTheme': applyCustomTheme(); break;
     case 'goToCompatibility': goToCompatibility(); break;
     case 'startTour': startTour(); break;
     case 'nextTourStep': nextTourStep(); break;
