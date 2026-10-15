@@ -209,5 +209,6 @@ function fanScoreFor(id, critic){
 const ALL_THEORIES = [...FRESH_THEORIES, ...THEORIES];
 const ALL_ITEMS = [...RAW_ERAS, ...OTHER_ERAS].flatMap(e=>e.items);
 const DOOMSDAY_PATH = ['avengers1','age-of-ultron','infinity-war','endgame','no-way-home','wandavision','loki-s1','what-if-s1','multiverse-madness','quantumania','loki-s2','days-future-past','logan','x-men','deadpool-wolverine','the-marvels','secret-invasion','agatha','x-men-97','fantastic-four','thunderbolts','spiderman-brand-new-day','avengers-doomsday'];
+const DOOMSDAY_PATH_BASICS = ['avengers1','age-of-ultron','infinity-war','endgame','loki-s1','multiverse-madness','loki-s2','deadpool-wolverine','fantastic-four','thunderbolts','spiderman-brand-new-day','avengers-doomsday'];
 const TYPE_TAG = {movie:'tag-accent',series:'tag-accent-2',special:'tag-neutral',short:'tag-outline'};
 const TYPE_LABEL = {movie:'FILM',series:'SERIES',special:'SPECIAL',short:'SHORT'};

@@ -702,6 +702,7 @@ function fanScoreFor(id, critic){
 const ALL_THEORIES = [...FRESH_THEORIES, ...THEORIES];
 const ALL_ITEMS = [...RAW_ERAS, ...OTHER_ERAS].flatMap(e=>e.items);
 const DOOMSDAY_PATH = ['avengers1','age-of-ultron','infinity-war','endgame','no-way-home','wandavision','loki-s1','what-if-s1','multiverse-madness','quantumania','loki-s2','days-future-past','logan','x-men','deadpool-wolverine','the-marvels','secret-invasion','agatha','x-men-97','fantastic-four','thunderbolts','spiderman-brand-new-day','avengers-doomsday'];
+const DOOMSDAY_PATH_BASICS = ['avengers1','age-of-ultron','infinity-war','endgame','loki-s1','multiverse-madness','loki-s2','deadpool-wolverine','fantastic-four','thunderbolts','spiderman-brand-new-day','avengers-doomsday'];
 const TYPE_TAG = {movie:'tag-accent',series:'tag-accent-2',special:'tag-neutral',short:'tag-outline'};
 const TYPE_LABEL = {movie:'FILM',series:'SERIES',special:'SPECIAL',short:'SHORT'};
 
@@ -963,7 +964,7 @@ function initAuth(){
 var STORAGE_KEY = 'mcuRewatch.v1';
 function defaultState(){
   return {
-    tab:'timeline', section:'connected', viewMode:'chrono', search:'', filtersOpen:true,
+    tab:'timeline', section:'connected', viewMode:'chrono', doomsdayBasics:false, search:'', filtersOpen:true,
     expandedEra:'origins', watched:{}, ratings:{}, watchedOrder:[],
     favorites:{}, favoriteOrder:[], layout:'list', roadmapFocus:null,
     notif:true, theme:'ironman',
@@ -999,6 +1000,7 @@ function commitDebounced(key, delay){
 function setTab(t){ state.tab=t; state.scrolled=false; state.roadmapFocus=null; commit(); }
 function setSection(v){ state.section=v; commit(); }
 function setViewMode(v){ state.viewMode=v; state.roadmapFocus=null; commit(); }
+function setDoomsdayDepth(v){ state.doomsdayBasics = (v==='basics'); state.roadmapFocus=null; commit(); }
 function setSearch(v){ state.search=v; commitDebounced('search'); }
 function toggleFilters(){ state.filtersOpen = !state.filtersOpen; commit(); }
 function setTheorySearch(v){ state.theorySearch=v; commitDebounced('theorySearch'); }
@@ -1312,8 +1314,12 @@ function filteredEras(s){
   var q = s.search.trim().toLowerCase();
   var sourceEras;
   if(s.viewMode === 'doomsday'){
-    var items = DOOMSDAY_PATH.map(function(id){ return ALL_ITEMS.find(function(it){ return it.id===id; }); }).filter(Boolean);
-    sourceEras = [{id:'doomsday-path', name:'Path to Doomsday', years:'Curated multiverse build-up', blurb:"A hand-picked route through only the titles that build directly toward Avengers: Doomsday — skipping side stories so the multiverse threat's escalation reads as one continuous line.", items:items}];
+    var pathIds = s.doomsdayBasics ? DOOMSDAY_PATH_BASICS : DOOMSDAY_PATH;
+    var items = pathIds.map(function(id){ return ALL_ITEMS.find(function(it){ return it.id===id; }); }).filter(Boolean);
+    var pathBlurb = s.doomsdayBasics
+      ? "Just the basics — the fewest titles you can watch and still follow Avengers: Doomsday's plot. Great if you don't want a deep dive."
+      : "A hand-picked route through only the titles that build directly toward Avengers: Doomsday — skipping side stories so the multiverse threat's escalation reads as one continuous line.";
+    sourceEras = [{id:'doomsday-path', name:'Path to Doomsday', years:'Curated multiverse build-up', blurb:pathBlurb, items:items}];
   } else if(s.viewMode === 'release'){
     var base = s.section === 'other' ? OTHER_ERAS : RAW_ERAS;
     var flat = [];
@@ -1399,6 +1405,12 @@ function renderTimelineHeader(s){
         '<label><input type="radio" name="section" data-value="other" '+(s.section==='other'?'checked':'')+'>Other Adaptations</label>'+
       '</div>'
     ) : '';
+    var doomsdayDepthToggle = s.viewMode === 'doomsday' ? (
+      '<div class="seg" style="margin-top:8px">'+
+        '<label><input type="radio" name="doomsdaydepth" data-value="basics" '+(s.doomsdayBasics?'checked':'')+'>Basic Knowledge</label>'+
+        '<label><input type="radio" name="doomsdaydepth" data-value="full" '+(!s.doomsdayBasics?'checked':'')+'>Deep Dive</label>'+
+      '</div>'
+    ) : '';
     filtersBlock =
       '<input class="search" type="text" placeholder="Search titles…" value="'+esc(s.search)+'" data-bind="search" data-focus-id="search" style="margin-top:8px;margin-bottom:4px">'+
       '<p class="caption">Choose your own path — story order, release order, or straight to Doomsday.</p>'+
@@ -1407,6 +1419,7 @@ function renderTimelineHeader(s){
         '<label><input type="radio" name="viewmode" data-value="release" '+(s.viewMode==='release'?'checked':'')+'>Release Order</label>'+
         '<label><input type="radio" name="viewmode" data-value="doomsday" '+(s.viewMode==='doomsday'?'checked':'')+'>Doomsday Path</label>'+
       '</div>'+
+      doomsdayDepthToggle+
       sectionToggle;
   }
   return (
@@ -2102,6 +2115,7 @@ root.addEventListener('click', function(e){
 root.addEventListener('change', function(e){
   var t = e.target;
   if(t.name === 'viewmode'){ setViewMode(t.dataset.value); }
+  else if(t.name === 'doomsdaydepth'){ setDoomsdayDepth(t.dataset.value); }
   else if(t.name === 'section'){ setSection(t.dataset.value); }
   else if(t.name === 'theorysort'){ setTheorySort(t.dataset.value); }
   else if(t.name === 'layout'){ setLayout(t.dataset.value); }
